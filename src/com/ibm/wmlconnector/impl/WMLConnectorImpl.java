@@ -172,6 +172,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             JSONObject solve_parameters = new JSONObject();
             solve_parameters.put("oaas.logAttachmentName", "log.txt");
             solve_parameters.put("oaas.logTailEnabled", "true");
+            solve_parameters.put("oaas.includeInputData", "false");
             solve_parameters.put("oaas.resultsFormat", "JSON");
             decision_optimization.put("solve_parameters", solve_parameters);
 

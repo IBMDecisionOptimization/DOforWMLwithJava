@@ -629,9 +629,9 @@ public class Sample {
         //KO main.fullInfeasibleDietOPLFlow();
 
         // CPLEX
-        main.fullLPFLow("diet.lp");
+        //main.fullLPFLow("diet.lp");
 
-        //main.fullLPInlineFLow("diet.lp", 100 );
+        main.fullLPInlineFLow("diet.lp", 1 );
         //main.parallelFullLPInlineFLow("diet.lp", 5, 100 );
         //main.fullLPInlineFLow("acc-tight4.lp", 20 );
         //main.parallelFullLPInlineFlow("acc-tight4.lp", 5, 100 );
