@@ -1,0 +1,73 @@
+{
+	"deployment": {
+		"href": "/v4/deployments/8f75a3eb-9898-4af5-b36b-89f5be1c2a75"
+	},
+	"decision_optimization": {
+		"input_data": [
+			{
+				"id": "sku.csv",
+				"fields": [
+					"sku_id"
+				],
+				"values": [[1],[2]]
+			},
+			{
+				"id": "client.csv",
+				"fields": ["client_id"],
+				"values": [[1],[2]]
+			},
+			{
+				"id": "time.csv",
+				"fields": ["time_id"],
+				"values": [[1],[2]]
+			},
+			{
+				"id": "negotiation.csv",
+				"fields": ["time_id","client_id","sku_id","demand","cost_sale"],
+				"values": [
+					[1, 1, 1, 0, 4.95],
+					[2, 1, 1, 11562, 4.53],
+				  [1, 2,1, 0, 1.57],
+					[2, 2, 1 ,14131, 4.53],
+					[1, 1, 2, 0, 3.75],
+					[2, 1, 2, 55227, 1.99],
+					[1, 2, 2, 0, 1.53],
+					[2, 2, 2, 111557, 1.54]
+				]
+			},
+			{
+				"id": "product.csv",
+				"fields": ["time_id", "sku_id","cost_buy","safety_stock"],
+				"values": [
+					[1, 1, 17, 0],
+					[1, 2, 41, 0],
+					[2, 1, 43, 25255],
+					[2, 2, 32, 164926]
+				]
+			},
+			{
+				"id": "stock_inicial.csv",
+				"fields": ["sku_id", "inicial"],
+				"values": [
+					[1, 25693],
+					[2, 166784]
+				]
+			},
+			{
+				"id": "warehouse.csv",
+				"fields": ["time_id", "sku_id", "retorno"],
+				"values": [
+					[1, 1, 0],
+					[1, 2, 0],
+					[2, 1, 25693],
+					[2, 2, 166784]
+				]
+			}
+		],
+		"output_data": [
+			{
+				"id": ".*\\.csv"
+			}
+		]
+	}
+}

@@ -45,6 +45,12 @@ public class Sample {
         return bytes;
     }
 
+    private static JSONArray createDataFromJSONPayload(String fileName) {
+        String file = getFileContent("src/resources/"+fileName);
+
+        JSONObject payload = new JSONObject(file);
+        return payload.getJSONObject("decision_optimization").getJSONArray("input_data");
+    }
 
     private static JSONObject createDataFromCSV(String fileName) {
 
@@ -116,22 +122,14 @@ public class Sample {
         return data;
     }
 
-    public String createAndDeployEmptyCPLEXModel(WMLConnector wml) {
-        return createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
-    }
-
-    public String createAndDeployEmptyCPLEXModel(WMLConnector wml, int nodes) {
-        return createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, nodes);
-    }
-
     public String createAndDeployEmptyModel(WMLConnector wml, WMLConnector.ModelType type, WMLConnector.TShirtSize size, int nodes) {
 
         LOGGER.info("Create Empty " + type + " Model");
 
-        String model_id = wml.createNewModel("EmptyCPLEXModel",type, null);
+        String model_id = wml.createNewModel("empty-"+type+"-model",type, null);
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("empty-cplex-test-wml-2", wml.getModelHref(model_id, false), size, nodes);
+        String deployment_id = wml.deployModel("empty-"+type+"-deployment-"+size+"-"+nodes, wml.getModelHref(model_id, false), size, nodes);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         return deployment_id;
@@ -193,7 +191,7 @@ public class Sample {
     public void fullLPFLow(String filename) {
         LOGGER.info("Create and authenticate WML Connector");
         WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
-        String deployment_id = createAndDeployEmptyCPLEXModel(wml);
+        String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
         COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
         cos.putFile(filename, "src/resources/"+filename);
@@ -212,7 +210,7 @@ public class Sample {
     public void deleteLPJob(String filename) {
         LOGGER.info("Create and authenticate WML Connector");
         WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
-        String deployment_id = createAndDeployEmptyCPLEXModel(wml);
+        String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
         COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
         cos.putFile(filename, "src/resources/"+filename);
@@ -230,7 +228,7 @@ public class Sample {
     public void parallelFullLPInlineFlow(String filename, int nodes, int nJobs) {
 
         WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
-        String deployment_id = createAndDeployEmptyCPLEXModel(wml, nodes);
+        String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, nodes);
 
         long startTime = System.nanoTime();
         List<WMLJob> jobs = new ArrayList<WMLJob>();
@@ -275,7 +273,7 @@ public class Sample {
     public void fullLPInlineFLow(String filename, int nJobs) {
 
         WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
-        String deployment_id = createAndDeployEmptyCPLEXModel(wml);
+        String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
         long startTime = System.nanoTime();
         for (int i=0; i<nJobs; i++) {
@@ -315,6 +313,7 @@ public class Sample {
 
     public String getSolutionFromJob(WMLJob job) {
         JSONArray output_data = job.extractOutputData();
+        String solution = "";
         for (Iterator<Object> it = output_data.iterator(); it.hasNext(); ) {
             JSONObject o = (JSONObject)it.next();
             if (o.getString("id").equals("solution.json")) {
@@ -322,15 +321,38 @@ public class Sample {
                 try {
                     encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
                     byte[] decoded = Base64.getDecoder().decode(encoded);
-                    String solution = new String(decoded, "UTF-8");
-                    return solution;
+                    solution = new String(decoded, "UTF-8");
+                    break;
 
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
+            } else if (o.getString("id").endsWith("csv")) {
+                solution += o.getString("id") + "\n";
+                JSONArray fields = o.getJSONArray("fields");
+                boolean first = true;
+                for (int f =0; f<fields.length(); f++) {
+                    if (!first)
+                        solution += ",";
+                    solution += fields.getString(f);
+                    first = false;
+                }
+                solution += "\n";
+                JSONArray values = o.getJSONArray("values");
+                for (int r = 0; r<values.length(); r++) {
+                    JSONArray row = values.getJSONArray(r);
+                    first = true;
+                    for (int f =0; f<row.length(); f++) {
+                        if (!first)
+                            solution += ",";
+                        solution += row.get(f);
+                        first = false;
+                    }
+                    solution += "\n";
+                }
             }
         }
-        return null;
+        return solution;
     }
 
 
@@ -350,7 +372,7 @@ public class Sample {
 
     public void fullInfeasibleLPFLow() {
         WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
-        String deployment_id = createAndDeployEmptyCPLEXModel(wml);
+        String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
         COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
         cos.putFile("infeasible.lp", "src/resources/infeasible.lp");
@@ -611,6 +633,25 @@ public class Sample {
     }
 
 
+    public void fullOPLWithPayload() {
+        LOGGER.info("Full JSON Test with OPL");
+
+        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+
+        String model_id = wml.createNewModel("JSON Test OPL", WMLConnector.ModelType.OPL_12_9,"src/resources/test_payload.zip");
+        LOGGER.info("model_id = "+ model_id);
+
+        String deployment_id = wml.deployModel("json-test-opl-test-wml-2", wml.getModelHref(model_id, false), WMLConnector.TShirtSize.S,1);
+        LOGGER.info("deployment_id = "+ deployment_id);
+
+        JSONArray input_data = createDataFromJSONPayload("test_payload_input_job.json");
+
+        WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null,null);
+        LOGGER.info("Log:" + getLogFromJob(job));
+        LOGGER.info("Solution:" + getSolutionFromJob(job));
+
+        deleteDeployment(wml, deployment_id);
+    }
     public static void main(String[] args) {
         Sample main = new Sample();
 
@@ -626,13 +667,16 @@ public class Sample {
         //main.fullDietMainOPLWithDatFlow(false);
         //main.fullOPLWithJSONFlow(true);
 
+        main.fullOPLWithPayload();
+
         //KO main.fullInfeasibleDietOPLFlow();
 
         // CPLEX
-        //main.fullLPFLow("diet.lp");
+        //main.fullLPFLow("bigone.mps");
 
-        main.fullLPInlineFLow("diet.lp", 1 );
-        //main.parallelFullLPInlineFLow("diet.lp", 5, 100 );
+        //main.fullLPInlineFLow("bigone.mps", 1 );
+        //main.fullLPInlineFLow("diet.lp", 1 );
+        //main.parallelFullLPInlineFlow("diet.lp", 5, 100 );
         //main.fullLPInlineFLow("acc-tight4.lp", 20 );
         //main.parallelFullLPInlineFlow("acc-tight4.lp", 5, 100 );
 

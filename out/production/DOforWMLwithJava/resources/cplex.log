@@ -1,0 +1,56 @@
+
+Log started (V12.10.0.0) Mon Jun 15 11:37:37 2020
+
+
+Selected objective sense:  MINIMIZE
+Selected objective  name:  R0000000
+Selected RHS        name:  RHS1
+Selected bound      name:  BND1
+
+Problem 'bigone.mps' read.
+Read time = 1.06 sec. (141.70 ticks)
+Version identifier: 12.10.0.0 | 2019-11-26 | 843d4de2ae
+Found incumbent of value 5.5533900e+14 after 0.13 sec. (65.00 ticks)
+Tried aggregator 2 times.
+MIP Presolve eliminated 270 rows and 437 columns.
+Aggregator did 113 substitutions.
+Reduced MIP has 28418 rows, 660374 columns, and 1336945 nonzeros.
+Reduced MIP has 660067 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 2.06 sec. (863.52 ticks)
+Tried aggregator 1 time.
+Detecting symmetries...
+Reduced MIP has 28418 rows, 660374 columns, and 1336945 nonzeros.
+Reduced MIP has 660067 binaries, 307 generals, 0 SOSs, and 0 indicators.
+Presolve time = 2.11 sec. (832.58 ticks)
+Probing time = 1.00 sec. (160.08 ticks)
+Clique table members: 28262.
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 8 threads.
+Root relaxation solution time = 4.42 sec. (1852.01 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                       5.55339e+14    15055.8805           100.00%
+*     0+    0                       5.47979e+14    15055.8805           100.00%
+      0     0  -1.00000e+37     0   5.47979e+14    15055.8805     7965  100.00%
+
+Root node processing (before b&c):
+  Real time             =   12.45 sec. (4636.87 ticks)
+Parallel b&c, 8 threads:
+  Real time             =    0.00 sec. (0.00 ticks)
+  Sync time (average)   =    0.00 sec.
+  Wait time (average)   =    0.00 sec.
+                          ------------
+Total (root+branch&cut) =   12.45 sec. (4636.87 ticks)
+
+Solution pool: 4 solutions saved.
+
+MIP - Aborted, integer feasible:  Objective =  5.4797900201e+14
+Current MIP best bound =  1.5055880489e+04 (gap = 5.47979e+14, 100.00%)
+Solution time =   12.47 sec.  Iterations = 7965  Nodes = 0
+Deterministic time = 4638.76 ticks  (372.02 ticks/sec)
+
+
+Problem written to file 'bigone.sav'.

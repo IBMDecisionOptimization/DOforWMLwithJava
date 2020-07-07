@@ -172,8 +172,8 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             JSONObject solve_parameters = new JSONObject();
             solve_parameters.put("oaas.logAttachmentName", "log.txt");
             solve_parameters.put("oaas.logTailEnabled", "true");
-            solve_parameters.put("oaas.includeInputData", "false");
-            solve_parameters.put("oaas.resultsFormat", "JSON");
+            //solve_parameters.put("oaas.includeInputData", "false");
+            //solve_parameters.put("oaas.resultsFormat", "JSON");
             decision_optimization.put("solve_parameters", solve_parameters);
 
             if (input_data != null)
@@ -366,6 +366,12 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
         JSONObject json = new JSONObject(res);
         String deployment_id = json.getJSONObject("metadata").getString("guid");
+
+        /*
+        res = doGet(url + "/v4_private/"+deployment_id+"/payload_logging_configuration", headers);
+        JSONObject jsonres = new JSONObject(res);
+        LOGGER.severe(jsonres.toString());
+        */
 
         return deployment_id;
     }
