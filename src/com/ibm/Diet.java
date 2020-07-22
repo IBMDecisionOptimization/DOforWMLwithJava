@@ -40,7 +40,7 @@
 package com.ibm;
 
 import ilog.concert.*;
-import ilog.cplex.*;
+import ilog.cplex.IloCplex;
 import ilog.cplex.IloCplex.MultiObjIntInfo;
 import ilog.cplex.IloCplex.MultiObjLongInfo;
 import ilog.cplex.IloCplex.MultiObjNumInfo;
