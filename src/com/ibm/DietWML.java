@@ -46,7 +46,7 @@ import ilog.cplex.IloCplex.MultiObjLongInfo;
 import ilog.cplex.IloCplex.MultiObjNumInfo;
 import ilog.cplex.IloCplexWML;
 
-public class Diet_WML {
+public class DietWML {
 
     /**
      *  Print a usage message to stderr and abort.
