@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
@@ -82,6 +83,11 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         }
 
         @Override
+        public String getSolveStateDetail(String key) {
+            return status.getJSONObject("entity").getJSONObject("decision_optimization").getJSONObject("solve_state").getJSONObject("details").getString(key);
+        }
+
+        @Override
         public boolean hasSolveStatus() {
             return status.getJSONObject("entity").getJSONObject("decision_optimization").getJSONObject("solve_state").has("solve_status");
         }
@@ -150,6 +156,83 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 LOGGER.severe("Error updateStatus: " + e);
             }
         }
+
+        @Override
+        public String getLog() {
+            JSONArray output_data = extractOutputData();
+            for (Iterator<Object> it = output_data.iterator(); it.hasNext(); ) {
+                JSONObject o = (JSONObject)it.next();
+                if (o.getString("id").equals("log.txt")) {
+                    byte[] encoded = new byte[0];
+                    try {
+                        encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
+                        byte[] decoded = Base64.getDecoder().decode(encoded);
+                        String log = new String(decoded, "UTF-8");
+                        return log;
+
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public String getSolution() {
+            JSONArray output_data = extractOutputData();
+            String solution = "";
+            for (Iterator<Object> it = output_data.iterator(); it.hasNext(); ) {
+                JSONObject o = (JSONObject)it.next();
+                if (o.getString("id").equals("solution.json")) {
+                    byte[] encoded = new byte[0];
+                    try {
+                        encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
+                        byte[] decoded = Base64.getDecoder().decode(encoded);
+                        solution = new String(decoded, "UTF-8");
+                        break;
+
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                } else if (o.getString("id").equals("solution.xml")) {
+                    byte[] encoded = new byte[0];
+                    try {
+                        encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
+                        byte[] decoded = Base64.getDecoder().decode(encoded);
+                        solution = new String(decoded, "UTF-8");
+                        break;
+
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                } else if (o.getString("id").endsWith("csv")) {
+                    solution += o.getString("id") + "\n";
+                    JSONArray fields = o.getJSONArray("fields");
+                    boolean first = true;
+                    for (int f =0; f<fields.length(); f++) {
+                        if (!first)
+                            solution += ",";
+                        solution += fields.getString(f);
+                        first = false;
+                    }
+                    solution += "\n";
+                    JSONArray values = o.getJSONArray("values");
+                    for (int r = 0; r<values.length(); r++) {
+                        JSONArray row = values.getJSONArray(r);
+                        first = true;
+                        for (int f =0; f<row.length(); f++) {
+                            if (!first)
+                                solution += ",";
+                            solution += row.get(f);
+                            first = false;
+                        }
+                        solution += "\n";
+                    }
+                }
+            }
+            return solution;
+        }
     }
 
     @Override
@@ -172,8 +255,8 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             JSONObject solve_parameters = new JSONObject();
             solve_parameters.put("oaas.logAttachmentName", "log.txt");
             solve_parameters.put("oaas.logTailEnabled", "true");
-            //solve_parameters.put("oaas.includeInputData", "false");
-            //solve_parameters.put("oaas.resultsFormat", "JSON");
+            solve_parameters.put("oaas.includeInputData", "false");
+            solve_parameters.put("oaas.resultsFormat", "JSON");
             decision_optimization.put("solve_parameters", solve_parameters);
 
             if (input_data != null)
@@ -197,6 +280,9 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 JSONObject outjson = new JSONObject();
                 outjson.put("id", ".*\\.json");
                 output_data.put(outjson);
+                JSONObject outxml = new JSONObject();
+                outxml.put("id", ".*\\.xml");
+                output_data.put(outxml);
                 decision_optimization.put("output_data", output_data);
             }
 

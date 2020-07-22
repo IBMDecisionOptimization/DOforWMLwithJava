@@ -13,10 +13,13 @@ public interface WMLJob {
     public boolean hasSolveState();
     public boolean hasSolveStatus();
     public String getSolveStatus();
+    public String getSolveStateDetail(String key);
     public boolean hasLatestEngineActivity();
     public String getLatestEngineActivity();
     public HashMap<String, Object> getKPIs();
     public JSONArray extractOutputData();
     public void delete();
+    public String getLog();
+    public String getSolution();
 }
 

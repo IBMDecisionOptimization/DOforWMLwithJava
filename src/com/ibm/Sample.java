@@ -103,7 +103,7 @@ public class Sample {
     }
 
 
-    private static JSONObject createDataFromFile(String fileName) {
+    public static JSONObject createDataFromFile(String fileName) {
 
         byte[] bytes = getFileContentAsBytes("src/resources/"+fileName);
         byte[] encoded = Base64.getEncoder().encode(bytes);
@@ -292,67 +292,11 @@ public class Sample {
 
 
     public String getLogFromJob(WMLJob job) {
-        JSONArray output_data = job.extractOutputData();
-        for (Iterator<Object> it = output_data.iterator(); it.hasNext(); ) {
-            JSONObject o = (JSONObject)it.next();
-            if (o.getString("id").equals("log.txt")) {
-                byte[] encoded = new byte[0];
-                try {
-                    encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
-                    byte[] decoded = Base64.getDecoder().decode(encoded);
-                    String log = new String(decoded, "UTF-8");
-                    return log;
-
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return null;
+        return job.getLog();
     }
 
     public String getSolutionFromJob(WMLJob job) {
-        JSONArray output_data = job.extractOutputData();
-        String solution = "";
-        for (Iterator<Object> it = output_data.iterator(); it.hasNext(); ) {
-            JSONObject o = (JSONObject)it.next();
-            if (o.getString("id").equals("solution.json")) {
-                byte[] encoded = new byte[0];
-                try {
-                    encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
-                    byte[] decoded = Base64.getDecoder().decode(encoded);
-                    solution = new String(decoded, "UTF-8");
-                    break;
-
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            } else if (o.getString("id").endsWith("csv")) {
-                solution += o.getString("id") + "\n";
-                JSONArray fields = o.getJSONArray("fields");
-                boolean first = true;
-                for (int f =0; f<fields.length(); f++) {
-                    if (!first)
-                        solution += ",";
-                    solution += fields.getString(f);
-                    first = false;
-                }
-                solution += "\n";
-                JSONArray values = o.getJSONArray("values");
-                for (int r = 0; r<values.length(); r++) {
-                    JSONArray row = values.getJSONArray(r);
-                    first = true;
-                    for (int f =0; f<row.length(); f++) {
-                        if (!first)
-                            solution += ",";
-                        solution += row.get(f);
-                        first = false;
-                    }
-                    solution += "\n";
-                }
-            }
-        }
-        return solution;
+        return job.getSolution();
     }
 
 
@@ -404,6 +348,26 @@ public class Sample {
         wml.createAndRunJob(deployment_id, null, input_data_references, null, output_data_references);
         LOGGER.info("Log:" + getLogFromCOS(cos));
         LOGGER.info("Solution:" + getSolutionFromCOS(cos));
+    }
+
+    public void fullCPOFlow(String modelName) {
+
+        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        Credentials.cpo_deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPO_12_9, WMLConnector.TShirtSize.XL, 1);
+
+        String deployment_id = Credentials.cpo_deployment_id;
+        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        cos.putFile(modelName + ".cpo", "src/resources/" + modelName + ".cpo");
+        JSONArray input_data_references = new JSONArray();
+        input_data_references.put(cos.getDataReferences(modelName + ".cpo"));
+        JSONArray output_data_references = new JSONArray();
+        output_data_references.put(cos.getDataReferences("log.txt"));
+        output_data_references.put(cos.getDataReferences("solution.json"));
+        wml.createAndRunJob(deployment_id, null, input_data_references, null, output_data_references);
+        LOGGER.info("Log:" + getLogFromCOS(cos));
+        LOGGER.info("Solution:" + getSolutionFromCOS(cos));
+
+        deleteDeployment(wml, deployment_id);
     }
 
     public String createAndDeployWarehouseOPLModel(WMLConnector wml) {
@@ -657,7 +621,7 @@ public class Sample {
 
 
         // Python
-        //main.fullDietPythonFlow(false, 100);
+        main.fullDietPythonFlow(false, 1);
 
         // OPL
         //main.fullWarehouseOPLFlow(true);
@@ -667,12 +631,13 @@ public class Sample {
         //main.fullDietMainOPLWithDatFlow(false);
         //main.fullOPLWithJSONFlow(true);
 
-        main.fullOPLWithPayload();
+//        main.fullOPLWithPayload();
 
         //KO main.fullInfeasibleDietOPLFlow();
 
         // CPLEX
-        //main.fullLPFLow("bigone.mps");
+        //main.
+        // ("bigone.mps");
 
         //main.fullLPInlineFLow("bigone.mps", 1 );
         //main.fullLPInlineFLow("diet.lp", 1 );
@@ -684,7 +649,7 @@ public class Sample {
 
 
         // CPO
-//        main.fullCPOFLow();
+        //main.fullCPOFlow("mycpo");
         //main.runCPO("colors");
         //main.runCPO("plant_location");
 
