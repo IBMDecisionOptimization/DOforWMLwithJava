@@ -474,4 +474,24 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
     }
 
+    public String getDeploymentIdByName(String deployment_name) {
+        HashMap<String, String> headers = new HashMap<String, String>();
+        headers.put("Accept", "application/json");
+        headers.put("Authorization", "bearer " + bearerToken);
+        headers.put("ML-Instance-ID", instance_id);
+        headers.put("cache-control", "no-cache");
+
+        String res = doGet(url + "/v4/deployments", headers);
+
+        JSONObject json = new JSONObject(res);
+        JSONArray resources = json.getJSONArray("resources");
+        int len = resources.length();
+        for (int i=0; i<len; i++) {
+            JSONObject metadata = resources.getJSONObject(i).getJSONObject("metadata");
+            if (metadata.getString("name").equals(deployment_name))
+                    return metadata.getString("guid");
+        }
+        return null;
+
+    }
 }

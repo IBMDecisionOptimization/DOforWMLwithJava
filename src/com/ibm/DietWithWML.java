@@ -44,7 +44,7 @@ import ilog.cplex.IloCplex;
 import ilog.cplex.IloCplex.MultiObjIntInfo;
 import ilog.cplex.IloCplex.MultiObjLongInfo;
 import ilog.cplex.IloCplex.MultiObjNumInfo;
-import ilog.cplex.IloCplexWithWML;
+import ilog.cplex.CplexWithWML;
 
 public class DietWithWML {
 
@@ -291,7 +291,7 @@ public class DietWithWML {
 
         Data data = new Data(filename);
         final int nFoods = data.nFoods;
-        IloCplex cplex = new IloCplexWithWML( Credentials.WML_URL, Credentials.WML_APIKEY, Credentials.WML_INSTANCE_ID);
+        IloCplex cplex = new CplexWithWML( Credentials.WML_URL, Credentials.WML_APIKEY, Credentials.WML_INSTANCE_ID, "diet");
         //IloCplex cplex = new IloCplex();
         try {
             // Build model

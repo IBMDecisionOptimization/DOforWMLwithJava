@@ -75,4 +75,5 @@ public interface WMLConnector {
                                   JSONArray output_data,
                                   JSONArray output_data_references);
     public void deleteDeployment(String deployment_id);
+    public String getDeploymentIdByName(String deployment_name);
 }

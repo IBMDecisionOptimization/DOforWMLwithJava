@@ -25,24 +25,24 @@ import com.ibm.wmlconnector.WMLConnector;
 import com.ibm.wmlconnector.WMLJob;
 import com.ibm.wmlconnector.impl.WMLConnectorImpl;
 import ilog.concert.IloException;
-import ilog.concert.IloLPMatrix;
-import ilog.concert.IloNumVar;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class IloCplexWithWML extends ExternalCplex {
-    private static final Logger LOGGER = Logger.getLogger(IloCplexWML.class.getName());
+public class CplexWithWML extends ExternalCplex {
+    private static final Logger LOGGER = Logger.getLogger(CplexWithWML.class.getName());
     private static final long serialVersionUID = 1;
 
     String wml_url;
     String wml_apikey;
     String wml_instance_id;
-    public IloCplexWithWML(String url, String apikey, String instance_id) throws IloException { this(NamingStrategy.MAKE_NAMES, url, apikey, instance_id); }
-    public IloCplexWithWML(NamingStrategy namingStrategy, String url, String apikey, String instance_id) throws IloException {
+    String wml_name;
+    public CplexWithWML(String url, String apikey, String instance_id, String name) throws IloException { this(NamingStrategy.MAKE_NAMES, url, apikey, instance_id, name); }
+    public CplexWithWML(NamingStrategy namingStrategy, String url, String apikey, String instance_id, String name) throws IloException {
         super(namingStrategy);
         wml_url = url;
         wml_apikey = apikey;
         wml_instance_id = instance_id;
+        wml_name = name;
     }
 
     byte[] getFileContentAsBytes(String inputFilename)  {
@@ -55,13 +55,13 @@ public class IloCplexWithWML extends ExternalCplex {
         return bytes;
     }
 
-    JSONObject createDataFromFile(String fileName) {
+    JSONObject createDataFromFile(String fileName, String modelName) {
 
         byte[] bytes = getFileContentAsBytes(fileName);
         byte[] encoded = Base64.getEncoder().encode(bytes);
 
         JSONObject data = new JSONObject();
-        data.put("id", fileName);
+        data.put("id", modelName);
 
         JSONArray fields = new JSONArray();
         fields.put("___TEXT___");
@@ -90,47 +90,34 @@ public class IloCplexWithWML extends ExternalCplex {
                 WMLConnector.TShirtSize size = WMLConnector.TShirtSize.S;
                 int nodes = 1;
                 WMLConnectorImpl wml = new WMLConnectorImpl(wml_url, wml_instance_id, wml_apikey);
-                LOGGER.info("Create Empty " + type + " Model");
 
-                String model_id = wml.createNewModel("empty-"+type+"-model",type, null);
-                LOGGER.info("model_id = "+ model_id);
+                String deployment_id = wml.getDeploymentIdByName(wml_name);
+                if (deployment_id == null) {
+                    LOGGER.info("Create Empty " + type + " Model");
+                    String model_id = wml.createNewModel(wml_name, type, null);
+                    LOGGER.info("model_id = " + model_id);
 
-                String deployment_id = wml.deployModel("empty-"+type+"-deployment-"+size+"-"+nodes, wml.getModelHref(model_id, false), size, nodes);
-                LOGGER.info("deployment_id = "+ deployment_id);
-
+                    deployment_id = wml.deployModel(wml_name, wml.getModelHref(model_id, false), size, nodes);
+                }
+                LOGGER.info("deployment_id = " + deployment_id);
 
                 JSONArray input_data = new JSONArray();
-                input_data.put(createDataFromFile(model.getAbsolutePath()));
+                input_data.put(createDataFromFile(model.getAbsolutePath(), wml_name+".sav.gz"));
                 WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null, null);
 
-                FileWriter myWriter = new FileWriter(solution.getAbsolutePath());
-                myWriter.write(job.getSolution());
-                myWriter.close();
+                switch (job.getSolveStatus()) {
 
-                return new Solution(solution, knownVariables);
-
-                /*
-                try (final Executor executor = new Executor(JobExecutorFactory.createDefault())) {
-                    JobClient client = JobClientFactory.createDefault(url, key);
-                    final JobResponse response = client.newRequest()
-                            .input(model)
-                            .parameter(JobParameters.RESULTS_FORMAT, JobParameters.RESULTS_FORMAT_XML)
-                            .deleteOnCompletion(true)
-                            .output(solution)
-                            .execute(executor)
-                            .get();
-
-                    switch (response.getJob().getSolveStatus()) {
-                        case INFEASIBLE_SOLUTION:
-                        case INFEASIBLE_OR_UNBOUNDED_SOLUTION:
-                        case UNKNOWN:
-                            return new Solution();
-                        default:
-                            // We have a feasible solution. Parse the solution file
-                            return new Solution(solution, knownVariables);
-                    }
+                    case "TBD":
+                        return new Solution();
+                    default:
+                        // We have a feasible solution. Parse the solution file
+                        FileWriter myWriter = new FileWriter(solution.getAbsolutePath());
+                        myWriter.write(job.getSolution());
+                        myWriter.close();
+                        return new Solution(solution, knownVariables);
                 }
-                */
+
+
 
             }
             finally {
