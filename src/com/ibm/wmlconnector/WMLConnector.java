@@ -1,16 +1,24 @@
 package com.ibm.wmlconnector;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
-public interface WMLConnector {
+public interface WMLConnector extends Connector {
+
     public enum Runtime {
-        DO_12_9 ("/v4/runtimes/do_12.9"),
-        DO_12_10 ("/v4/runtimes/do_12.10");
+        DO_12_9 ("/v4/runtimes/do_12.9", "do_12.9"),
+        DO_12_10 ("/v4/runtimes/do_12.10", "do_12.10");
 
         private String name = "";
+        private String shortName = "";
 
-        Runtime(String name){
+        Runtime(String name, String shortName){
             this.name = name;
+            this.shortName = shortName;
+        }
+
+        public String getShortName() {
+            return shortName;
         }
 
         @Override
@@ -60,10 +68,17 @@ public interface WMLConnector {
 
     public void lookupBearerToken();
     public String getBearerToken();
+
+    public JSONObject getInstances();
+
+    public JSONObject getSoftwareSpecifications();
+    public void createDeploymentSpace(String name);
+    public JSONObject getDeploymentSpaces();
+
     public String createNewModel(String modelName, ModelType type, String modelAssetFilePath, Runtime runtime);
     public String createNewModel(String modelName, ModelType type, String modelAssetFilePath);
     public String getModelHref(String modelId, boolean displayModel);
-    public String deployModel(String deployName, String modelHref, TShirtSize size, int nodes);
+    public String deployModel(String deployName, String model_id, TShirtSize size, int nodes);
     public WMLJob createJob(String deployment_id,
                             JSONArray input_data,
                             JSONArray input_data_references,
@@ -75,5 +90,7 @@ public interface WMLConnector {
                                   JSONArray output_data,
                                   JSONArray output_data_references);
     public void deleteDeployment(String deployment_id);
+
+    public JSONObject getDeployments();
     public String getDeploymentIdByName(String deployment_name);
 }

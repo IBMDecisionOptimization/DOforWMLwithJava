@@ -37,7 +37,6 @@
  *
  * See the usage message for more details.
  */
-package com.ibm;
 
 import ilog.concert.*;
 import ilog.cplex.IloCplex;

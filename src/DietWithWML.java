@@ -37,8 +37,8 @@
  *
  * See the usage message for more details.
  */
-package com.ibm;
 
+import com.ibm.wmlconnector.Credentials;
 import ilog.concert.*;
 import ilog.cplex.IloCplex;
 import ilog.cplex.IloCplex.MultiObjIntInfo;
@@ -291,8 +291,7 @@ public class DietWithWML {
 
         Data data = new Data(filename);
         final int nFoods = data.nFoods;
-        IloCplex cplex = new CplexWithWML( Credentials.WML_URL, Credentials.WML_APIKEY, Credentials.WML_INSTANCE_ID, "diet");
-        //IloCplex cplex = new IloCplex();
+        IloCplex cplex = new CplexWithWML( new MyProdBetaV4Credentials(), "diet");
         try {
             // Build model
             IloNumVar[] buy = new IloNumVar[nFoods];
@@ -321,7 +320,6 @@ public class DietWithWML {
 
             // Solve model
 
-            /*
             if ( multiobj ) {
                 // Set multi-objective display level to "detailed".
                 cplex.setParam(IloCplex.Param.MultiObjective.Display, 2);
@@ -352,10 +350,6 @@ public class DietWithWML {
                 if ( !cplex.solve() )
                     throw new IloException("Failed to optimize");
             }
-            */
-
-            if ( !cplex.solve() )
-                throw new IloException("Failed to optimize");
 
             // Print the solution status.
 

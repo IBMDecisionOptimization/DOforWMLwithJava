@@ -1,21 +1,3 @@
-package com.ibm;/* --------------------------------------------------------------------------
- * File: InputDataReader.java
- * Version 12.10.0  
- * --------------------------------------------------------------------------
- * Licensed Materials - Property of IBM
- * 5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
- * Copyright IBM Corporation 2001, 2019. All Rights Reserved.
- *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with
- * IBM Corp.
- * --------------------------------------------------------------------------
- *
- * This is a helper class used by several examples to read input data files
- * containing arrays in the format [x1, x2, ..., x3].  Up to two-dimensional
- * arrays are supported.
- */
-
 import java.io.*;
 
 public class InputDataReader {

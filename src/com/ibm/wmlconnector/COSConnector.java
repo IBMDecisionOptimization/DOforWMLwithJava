@@ -2,7 +2,7 @@ package com.ibm.wmlconnector;
 
 import org.json.JSONObject;
 
-public interface COSConnector {
+public interface COSConnector extends Connector {
     public void lookupBearerToken();
     public JSONObject getDataReferences(String id);
     public void putFile(String fileName, String fileContent);

@@ -18,14 +18,16 @@ public abstract class ConnectorImpl {
 
     private static final Logger LOGGER = Logger.getLogger(ConnectorImpl.class.getName());
 
-    private static final String IAM_URL = "https://iam.cloud.ibm.com/identity/token";
+
     private static final int IAM_TIMEOUT = 3600;
 
+    String iam_url;
     String apikey;
     String bearerToken;
     long bearerTokenTime;
 
-    ConnectorImpl(String apikey) {
+    ConnectorImpl(String url, String apikey) {
+        this.iam_url = url;
         this.apikey = apikey;
     }
 
@@ -41,7 +43,7 @@ public abstract class ConnectorImpl {
         headers.put("Authorization", "Basic Yng6Yng=");
         headers.put("Content-Type", "application/x-www-form-urlencoded");
 
-        String res = doPost(IAM_URL, headers, "apikey="+apikey+"&grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey");
+        String res = doPost(iam_url, headers, "apikey="+apikey+"&grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&response_type=cloud_iam");
 
         try {
             JSONObject json = new JSONObject(res);
@@ -76,6 +78,7 @@ public abstract class ConnectorImpl {
                 connection.setRequestProperty(key, headers.get(key));
             }
 
+            connection.setRequestProperty("User-Agent", "My own REST client");
 
             connection.setUseCaches(false);
             connection.setDoOutput(true);

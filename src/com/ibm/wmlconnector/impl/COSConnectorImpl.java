@@ -1,6 +1,7 @@
 package com.ibm.wmlconnector.impl;
 
 import com.ibm.wmlconnector.COSConnector;
+import com.ibm.wmlconnector.Credentials;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -18,12 +19,12 @@ public class COSConnectorImpl extends ConnectorImpl implements COSConnector {
     String access_key_id;
     String secret_access_key;
 
-    public COSConnectorImpl(String url, String apikey, String bucket, String access_key_id, String secret_access_key) {
-        super(apikey);
-        this.url = url;
-        this.bucket = bucket;
-        this.access_key_id = access_key_id;
-        this.secret_access_key = secret_access_key;
+    public COSConnectorImpl(Credentials credentials) {
+        super(credentials.IAM_URL, credentials.COS_APIKEY);
+        this.url = credentials.COS_ENDPOINT;
+        this.bucket = credentials.COS_BUCKET;
+        this.access_key_id = credentials.COS_ACCESS_KEY_ID;
+        this.secret_access_key = credentials.COS_SECRET_ACCESS_KEY;
         lookupBearerToken();
     }
 

@@ -1,26 +1,23 @@
-package com.ibm;
-
-
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.ibm.wmlconnector.Credentials;
 import com.ibm.wmlconnector.COSConnector;
 import com.ibm.wmlconnector.WMLConnector;
 import com.ibm.wmlconnector.WMLJob;
 import com.ibm.wmlconnector.impl.COSConnectorImpl;
 import com.ibm.wmlconnector.impl.WMLConnectorImpl;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import static com.ibm.wmlconnector.WMLConnector.ModelType.CPLEX_12_9;
 
 public class Sample {
     private static final Logger LOGGER = Logger.getLogger(Sample.class.getName());
+
+    //private static final Credentials CREDENTIALS = new MyDevFinalV4Credentials();
+    private static final Credentials CREDENTIALS = new MyProdBetaV4Credentials();
 
     public static String getFileContent(String inputFilename)  {
         String res = "";
@@ -129,7 +126,7 @@ public class Sample {
         String model_id = wml.createNewModel("empty-"+type+"-model",type, null);
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("empty-"+type+"-deployment-"+size+"-"+nodes, wml.getModelHref(model_id, false), size, nodes);
+        String deployment_id = wml.deployModel("empty-"+type+"-deployment-"+size+"-"+nodes, model_id, size, nodes);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         return deployment_id;
@@ -143,7 +140,7 @@ public class Sample {
         //String model_id = wml.createNewModel("Diet","do-docplex_12.9","src/resources/diet.zip", "/v4/runtimes/do_12.9");
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("diet-test-wml-2", wml.getModelHref(model_id, false),WMLConnector.TShirtSize.M,1);
+        String deployment_id = wml.deployModel("diet-test-wml-2", model_id, WMLConnector.TShirtSize.M,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         return deployment_id;
@@ -159,7 +156,7 @@ public class Sample {
 
         LOGGER.info("Full flow with Diet");
 
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployDietPythonModel(wml);
         JSONArray input_data = new JSONArray();
         input_data.put(createDataFromCSV("diet_food.csv"));
@@ -168,7 +165,7 @@ public class Sample {
         JSONArray output_data_references = null;
         COSConnector cos = null;
         if (useOutputDataReferences) {
-            cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+            cos = new COSConnectorImpl(CREDENTIALS);
             output_data_references = new JSONArray();
             output_data_references.put(cos.getDataReferences("log.txt"));
         }
@@ -190,10 +187,10 @@ public class Sample {
 
     public void fullLPFLow(String filename) {
         LOGGER.info("Create and authenticate WML Connector");
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile(filename, "src/resources/"+filename);
         JSONArray input_data_references = new JSONArray();
         input_data_references.put(cos.getDataReferences(filename));
@@ -209,10 +206,10 @@ public class Sample {
 
     public void deleteLPJob(String filename) {
         LOGGER.info("Create and authenticate WML Connector");
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile(filename, "src/resources/"+filename);
         JSONArray input_data_references = new JSONArray();
         input_data_references.put(cos.getDataReferences(filename));
@@ -227,7 +224,7 @@ public class Sample {
 
     public void parallelFullLPInlineFlow(String filename, int nodes, int nJobs) {
 
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, nodes);
 
         long startTime = System.nanoTime();
@@ -272,7 +269,7 @@ public class Sample {
 
     public void fullLPInlineFLow(String filename, int nJobs) {
 
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
         long startTime = System.nanoTime();
@@ -315,10 +312,10 @@ public class Sample {
     }
 
     public void fullInfeasibleLPFLow() {
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
 
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile("infeasible.lp", "src/resources/infeasible.lp");
         cos.putFile("infeasible.feasibility", "src/resources/infeasible.feasibility");
         JSONArray input_data_references = new JSONArray();
@@ -336,15 +333,15 @@ public class Sample {
 
 
     public void runCPO(String modelName) {
-        String deployment_id = Credentials.cpo_deployment_id;
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        String deployment_id = CREDENTIALS.cpo_deployment_id;
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile(modelName + ".cpo", "src/resources/" + modelName + ".cpo");
         JSONArray input_data_references = new JSONArray();
         input_data_references.put(cos.getDataReferences(modelName + ".cpo"));
         JSONArray output_data_references = new JSONArray();
         output_data_references.put(cos.getDataReferences("log.txt"));
         output_data_references.put(cos.getDataReferences("solution.json"));
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         wml.createAndRunJob(deployment_id, null, input_data_references, null, output_data_references);
         LOGGER.info("Log:" + getLogFromCOS(cos));
         LOGGER.info("Solution:" + getSolutionFromCOS(cos));
@@ -352,11 +349,11 @@ public class Sample {
 
     public void fullCPOFlow(String modelName) {
 
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
-        Credentials.cpo_deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPO_12_9, WMLConnector.TShirtSize.XL, 1);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
+        CREDENTIALS.cpo_deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPO_12_9, WMLConnector.TShirtSize.XL, 1);
 
-        String deployment_id = Credentials.cpo_deployment_id;
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        String deployment_id = CREDENTIALS.cpo_deployment_id;
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile(modelName + ".cpo", "src/resources/" + modelName + ".cpo");
         JSONArray input_data_references = new JSONArray();
         input_data_references.put(cos.getDataReferences(modelName + ".cpo"));
@@ -377,7 +374,7 @@ public class Sample {
         String model_id = wml.createNewModel("Warehouse", WMLConnector.ModelType.OPL_12_9,"src/resources/warehouse.zip");
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("warehouse-opl-test-wml-2", wml.getModelHref(model_id, false), WMLConnector.TShirtSize.S,1);
+        String deployment_id = wml.deployModel("warehouse-opl-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         return deployment_id;
@@ -387,10 +384,10 @@ public class Sample {
 
         LOGGER.info("Full Warehouse with OPL");
 
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployWarehouseOPLModel(wml);
 
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile("warehouse.dat", "src/resources/warehouse.dat");
         JSONArray input_data_references = new JSONArray();
         input_data_references.put(cos.getDataReferences("warehouse.dat"));
@@ -418,7 +415,7 @@ public class Sample {
         String model_id = wml.createNewModel("Diet OPL", WMLConnector.ModelType.OPL_12_9,"src/resources/dietopl.zip");
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("diet-opl-test-wml-2", wml.getModelHref(model_id, false), WMLConnector.TShirtSize.S,1);
+        String deployment_id = wml.deployModel("diet-opl-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         return deployment_id;
@@ -431,7 +428,7 @@ public class Sample {
         String model_id = wml.createNewModel("Diet Main OPL", WMLConnector.ModelType.OPL_12_9,"src/resources/dietoplmain.zip");
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("diet-main-opl-test-wml-2", wml.getModelHref(model_id, false), WMLConnector.TShirtSize.S,1);
+        String deployment_id = wml.deployModel("diet-main-opl-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         return deployment_id;
@@ -441,10 +438,10 @@ public class Sample {
     public void fullDietOPLWithDatFlow(boolean useOutputDataReferences) {
 
         LOGGER.info("Full Diet with OPL");
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
 
         String deployment_id = createAndDeployDietOPLModel(wml);
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile("diet.dat", "src/resources/diet.dat");
         //cos.putFile("dietxls.dat", "src/resources/dietxls.dat");
         //cos.putBinaryFile("diet.xlsx", "src/resources/diet.xlsx");
@@ -474,10 +471,10 @@ public class Sample {
     public void fullDietMainOPLWithDatFlow(boolean useOutputDataReferences) {
 
         LOGGER.info("Full Diet with Main OPL");
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
 
         String deployment_id = createAndDeployDietMainOPLModel(wml);
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile("diet.dat", "src/resources/diet.dat");
         JSONArray input_data_references = new JSONArray();
         input_data_references.put(cos.getDataReferences("diet.dat"));
@@ -504,10 +501,10 @@ public class Sample {
     public void fullDietOPLWithCSVFlow(boolean useOutputDataReferences) {
 
         LOGGER.info("Full Diet with OPL");
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployDietOPLModel(wml);
 
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         JSONArray input_data = new JSONArray();
         input_data.put(createDataFromCSV("diet_food.csv"));
         input_data.put(createDataFromCSV("diet_food_nutrients.csv"));
@@ -536,15 +533,15 @@ public class Sample {
 
         LOGGER.info("Full JSON Test with OPL");
 
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
 
         String model_id = wml.createNewModel("JSON Test OPL", WMLConnector.ModelType.OPL_12_9,"src/resources/jsontest.zip");
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("json-test-opl-test-wml-2", wml.getModelHref(model_id, false), WMLConnector.TShirtSize.S,1);
+        String deployment_id = wml.deployModel("json-test-opl-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         cos.putFile("Nurses.json", "src/resources/Nurses.json");
         cos.putFile("spokes.json", "src/resources/spokes.json");
         JSONArray input_data_references = new JSONArray();
@@ -571,10 +568,10 @@ public class Sample {
     public void fullInfeasibleDietOPLFlow() {
 
         LOGGER.info("Full Infeasible Diet with OPL");
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployDietOPLModel(wml);
 
-        COSConnector cos = new COSConnectorImpl(Credentials.COS_ENDPOINT, Credentials.COS_APIKEY, Credentials.COS_BUCKET, Credentials.COS_ACCESS_KEY_ID, Credentials.COS_SECRET_ACCESS_KEY);
+        COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         JSONArray input_data = null;
         JSONArray input_data_references = null;
         cos.putFile("infeasible_diet.dat", "src/resources/infeasible_diet.dat");
@@ -600,12 +597,12 @@ public class Sample {
     public void fullOPLWithPayload() {
         LOGGER.info("Full JSON Test with OPL");
 
-        WMLConnectorImpl wml = new WMLConnectorImpl(Credentials.WML_URL, Credentials.WML_INSTANCE_ID, Credentials.WML_APIKEY);
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
 
         String model_id = wml.createNewModel("JSON Test OPL", WMLConnector.ModelType.OPL_12_9,"src/resources/test_payload.zip");
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("json-test-opl-test-wml-2", wml.getModelHref(model_id, false), WMLConnector.TShirtSize.S,1);
+        String deployment_id = wml.deployModel("json-test-opl-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         JSONArray input_data = createDataFromJSONPayload("test_payload_input_job.json");
@@ -616,9 +613,84 @@ public class Sample {
 
         deleteDeployment(wml, deployment_id);
     }
+
+    public void testPerfs(int N) {
+        LOGGER.info("Test perfs with " + N + " repeatitions.");
+
+        LOGGER.info("Test get token.");
+        WMLConnector wml = null;
+        long startTime = System.nanoTime();
+        long midTime = startTime;
+        for (int i=0; i<N; i++) {
+            wml = new WMLConnectorImpl(CREDENTIALS);
+            LOGGER.info("Execution time: " + ((System.nanoTime()-midTime)/1000000000.));
+            midTime = System.nanoTime();
+        }
+        long endTime   = System.nanoTime();
+        long totalTime = endTime - startTime;
+        LOGGER.info("Total time: " + (totalTime/1000000000.));
+        LOGGER.info("Average per execution time: " + (totalTime/(N*1000000000.)));
+
+
+        LOGGER.info("Test get deployments.");
+        startTime = System.nanoTime();
+        midTime = startTime;
+        for (int i=0; i<N; i++) {
+            wml.getDeploymentIdByName("dummy");
+            LOGGER.info("Execution time: " + ((System.nanoTime()-midTime)/1000000000.));
+            midTime = System.nanoTime();
+        }
+        endTime   = System.nanoTime();
+        totalTime = endTime - startTime;
+        LOGGER.info("Total time: " + (totalTime/1000000000.));
+        LOGGER.info("Average per execution time: " + (totalTime/(N*1000000000.)));
+
+
+        LOGGER.info("Test create job.");
+        String deployment_id = createAndDeployDietPythonModel(wml);
+        JSONArray input_data = new JSONArray();
+        input_data.put(createDataFromCSV("diet_food.csv"));
+        input_data.put(createDataFromCSV("diet_food_nutrients.csv"));
+        input_data.put(createDataFromCSV("diet_nutrients.csv"));
+        JSONArray output_data_references = null;
+        startTime = System.nanoTime();
+        midTime = startTime;
+        for (int i=0; i<N; i++) {
+            WMLJob job = wml.createJob(deployment_id, input_data, null, null, output_data_references);
+            LOGGER.info("Execution time: " + ((System.nanoTime()-midTime)/1000000000.));
+            midTime = System.nanoTime();
+        }
+        endTime   = System.nanoTime();
+        totalTime = endTime - startTime;
+        LOGGER.info("Total time: " + (totalTime/1000000000.));
+        LOGGER.info("Average per execution time: " + (totalTime/(N*1000000000.)));
+
+
+        deleteDeployment(wml, deployment_id);
+    }
+
+    void testV4final() {
+        LOGGER.info("Test v4 final.");
+        WMLConnector wml = new WMLConnectorImpl(CREDENTIALS);
+
+
+        //LOGGER.info("Instances: " + wml.getInstances());
+        LOGGER.info("Spaces: " + wml.getDeploymentSpaces());
+
+        //LOGGER.info("Software Specifications: " + wml.getSoftwareSpecifications());
+
+        //wml.createDeploymentSpace("test_space");
+        //LOGGER.info("Spaces: " + wml.getDeploymentSpaces());
+
+
+        LOGGER.info("Deployments: " + wml.getDeployments());
+    }
     public static void main(String[] args) {
         Sample main = new Sample();
 
+        //main.testV4final();
+
+        //main.testPerfs(1);
 
         // Python
         main.fullDietPythonFlow(false, 1);

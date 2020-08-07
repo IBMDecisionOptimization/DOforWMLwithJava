@@ -10,7 +10,19 @@
    limitations under the License.
    --------------------------------------------------------------------------
  */
-package ilog.cplex;
+package ilog.cp;
+
+import com.ibm.wmlconnector.Connector;
+import com.ibm.wmlconnector.Credentials;
+import com.ibm.wmlconnector.WMLConnector;
+import com.ibm.wmlconnector.WMLJob;
+import com.ibm.wmlconnector.impl.ConnectorImpl;
+import com.ibm.wmlconnector.impl.WMLConnectorImpl;
+import ilog.concert.IloException;
+import ilog.concert.IloSolution;
+import ilog.cplex.ExternalCplex;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -21,25 +33,14 @@ import java.util.Base64;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import com.ibm.wmlconnector.Connector;
-import com.ibm.wmlconnector.Credentials;
-import com.ibm.wmlconnector.WMLConnector;
-import com.ibm.wmlconnector.WMLJob;
-import com.ibm.wmlconnector.impl.ConnectorImpl;
-import com.ibm.wmlconnector.impl.WMLConnectorImpl;
-import ilog.concert.IloException;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-public class CplexWithWML extends ExternalCplex {
-    private static final Logger LOGGER = Logger.getLogger(CplexWithWML.class.getName());
+public class CPWithWML extends ExternalCP {
+    private static final Logger LOGGER = Logger.getLogger(CPWithWML.class.getName());
     private static final long serialVersionUID = 1;
 
-    Credentials wml_credentials;
-    String wml_name;
-    public CplexWithWML(Credentials credentials, String name) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, name); }
-    public CplexWithWML(NamingStrategy namingStrategy, Credentials credentials, String name) throws IloException {
-        super(namingStrategy);
+    protected Credentials wml_credentials;
+    protected String wml_name;
+    public CPWithWML(Credentials credentials, String name) throws IloException {
+        super();
         wml_credentials = credentials;
         wml_name = name;
     }
@@ -74,18 +75,20 @@ public class CplexWithWML extends ExternalCplex {
     }
 
     @Override
-    protected Solution externalSolve(Set<String> knownVariables) throws IloException {
+    protected JSONObject externalSolve() throws IloException {
+
+        WMLConnectorImpl.RESULTS_FORMAT = "JSON";
 
         try {
             // Create temporary files for model input and solution output.
-            final File model = File.createTempFile("cpx", ".sav.gz");
+            final File model = File.createTempFile("cpo", ".cpo");
             final File solution = new File(model.getAbsolutePath() + ".sol");
             solution.deleteOnExit();
             exportModel(model.getAbsolutePath());
-            LOGGER.fine("Exported sav file.");
+            LOGGER.fine("Exported cpo file.");
             try {
 
-                WMLConnector.ModelType type = WMLConnector.ModelType.CPLEX_12_9;
+                WMLConnector.ModelType type = WMLConnector.ModelType.CPO_12_9;
                 WMLConnector.TShirtSize size = WMLConnector.TShirtSize.S;
                 int nodes = 1;
                 WMLConnectorImpl wml = new WMLConnectorImpl(wml_credentials);
@@ -101,20 +104,16 @@ public class CplexWithWML extends ExternalCplex {
                 LOGGER.fine("deployment_id = " + deployment_id);
 
                 JSONArray input_data = new JSONArray();
-                input_data.put(createDataFromFile(model.getAbsolutePath(), wml_name+".sav.gz"));
+                input_data.put(createDataFromFile(model.getAbsolutePath(), wml_name+".cpo"));
                 WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null, null);
 
                 switch (job.getSolveStatus()) {
 
                     case "TBD":
-                        return new Solution();
+                        return null;
                     default:
                         // We have a feasible solution. Parse the solution file
-                        FileWriter myWriter = new FileWriter(solution.getAbsolutePath());
-                        myWriter.write(job.getSolution());
-                        myWriter.close();
-                        System.out.println(job.getLog().replaceAll("\n\n", "\n"));
-                        return new Solution(solution, knownVariables);
+                        return new JSONObject(job.getSolution());
                 }
 
 
