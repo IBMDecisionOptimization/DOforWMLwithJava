@@ -1,6 +1,8 @@
 package com.ibm.wmlconnector;
 
 public class Credentials {
+    public boolean USE_V4_FINAL = false;
+
     public String IAM_URL = "https://iam.cloud.ibm.com/identity/token";
 
     public String API_URL = null;               // required only for V4 final
@@ -12,6 +14,7 @@ public class Credentials {
     public String WML_APIKEY  = null;           // NOT required for V4 final
     public String WML_URL = null;
 
+    public String WML_SPACE_NAME = null;        // required only for V4 final
     public String WML_SPACE_ID = null;          // required only for V4 final
     public String WML_VERSION = "2020-08-07";   // required only for V4 final
 

@@ -17,107 +17,9 @@ public class Sample {
     private static final Logger LOGGER = Logger.getLogger(Sample.class.getName());
 
     //private static final Credentials CREDENTIALS = new MyDevFinalV4Credentials();
-    private static final Credentials CREDENTIALS = new MyProdBetaV4Credentials();
+    private static final Credentials CREDENTIALS = new MyQAFinalV4Credentials();
+    //private static final Credentials CREDENTIALS = new MyProdBetaV4Credentials();
 
-    public static String getFileContent(String inputFilename)  {
-        String res = "";
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(inputFilename));
-            for (Iterator<String> it = lines.iterator(); it.hasNext();)
-                res += it.next() + "\n";
-        } catch (IOException e) {
-            LOGGER.severe("Error getting file" + e.getStackTrace());
-        }
-
-        return res;
-    }
-
-    public static byte[] getFileContentAsBytes(String inputFilename)  {
-        byte[] bytes = null;
-        try {
-            bytes = Files.readAllBytes(Paths.get(inputFilename));
-        } catch (IOException e) {
-            LOGGER.severe("Error getting file" + e.getStackTrace());
-        }
-        return bytes;
-    }
-
-    private static JSONArray createDataFromJSONPayload(String fileName) {
-        String file = getFileContent("src/resources/"+fileName);
-
-        JSONObject payload = new JSONObject(file);
-        return payload.getJSONObject("decision_optimization").getJSONArray("input_data");
-    }
-
-    private static JSONObject createDataFromCSV(String fileName) {
-
-        JSONObject data = new JSONObject();
-        data.put("id", fileName);
-
-        JSONArray fields = new JSONArray();
-        JSONArray all_values = new JSONArray();
-        String file = getFileContent("src/resources/"+fileName);
-        String[] lines = file.split("\n");
-        int nlines = lines.length;
-        String[] fields_array = lines[0].split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-        int nfields = fields_array.length;
-        for (int i=0; i<nfields; i++) {
-            String field = fields_array[i];
-            if (field.charAt(0) == '"')
-                field = field.substring(1);
-            if  (field.charAt(field.length()-1) == '"')
-                field = field.substring(0, field.length()-1);
-            fields.put(field);
-        }
-        data.put("fields", fields);
-
-        for (int i = 1; i<nlines; i++) {
-            JSONArray values = new JSONArray();
-            String[] values_array = lines[i].split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-            for (int j=0; j<nfields; j++) {
-                String value = values_array[j];
-                if (value.charAt(0) == '"')
-                    value = value.substring(1);
-                if (value.charAt(value.length() - 1) == '"')
-                    value = value.substring(0, value.length() - 1);
-
-                try {
-                    int ivalue = Integer.parseInt(value);
-                    values.put(ivalue);
-                } catch (NumberFormatException e) {
-                    try {
-                        double dvalue = Double.parseDouble(value);
-                        values.put(dvalue);
-                    } catch (NumberFormatException e2) {
-                        values.put(value);
-                    }
-                }
-            }
-            all_values.put(values);
-        }
-        data.put("values", all_values);
-        return data;
-    }
-
-
-    public static JSONObject createDataFromFile(String fileName) {
-
-        byte[] bytes = getFileContentAsBytes("src/resources/"+fileName);
-        byte[] encoded = Base64.getEncoder().encode(bytes);
-
-        JSONObject data = new JSONObject();
-        data.put("id", fileName);
-
-        JSONArray fields = new JSONArray();
-        fields.put("___TEXT___");
-        data.put("fields", fields);
-
-        JSONArray values = new JSONArray();
-        values.put(new JSONArray().put(new String(encoded)));
-        data.put("values", values);
-
-        return data;
-    }
 
     public String createAndDeployEmptyModel(WMLConnector wml, WMLConnector.ModelType type, WMLConnector.TShirtSize size, int nodes) {
 
@@ -137,10 +39,9 @@ public class Sample {
         LOGGER.info("Create Python Model");
 
         String model_id = wml.createNewModel("Diet", WMLConnector.ModelType.DOCPLEX_12_10,"src/resources/diet.zip", WMLConnector.Runtime.DO_12_10);
-        //String model_id = wml.createNewModel("Diet","do-docplex_12.9","src/resources/diet.zip", "/v4/runtimes/do_12.9");
         LOGGER.info("model_id = "+ model_id);
 
-        String deployment_id = wml.deployModel("diet-test-wml-2", model_id, WMLConnector.TShirtSize.M,1);
+        String deployment_id = wml.deployModel("diet-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
         return deployment_id;
@@ -159,9 +60,9 @@ public class Sample {
         WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployDietPythonModel(wml);
         JSONArray input_data = new JSONArray();
-        input_data.put(createDataFromCSV("diet_food.csv"));
-        input_data.put(createDataFromCSV("diet_food_nutrients.csv"));
-        input_data.put(createDataFromCSV("diet_nutrients.csv"));
+        input_data.put(wml.createDataFromCSV("diet_food.csv", "src/resources/diet_food.csv"));
+        input_data.put(wml.createDataFromCSV("diet_food_nutrients.csv", "src/resources/diet_food_nutrients.csv"));
+        input_data.put(wml.createDataFromCSV("diet_nutrients.csv", "src/resources/diet_nutrients.csv"));
         JSONArray output_data_references = null;
         COSConnector cos = null;
         if (useOutputDataReferences) {
@@ -222,7 +123,7 @@ public class Sample {
         deleteDeployment(wml, deployment_id);
     }
 
-    public void parallelFullLPInlineFlow(String filename, int nodes, int nJobs) {
+    public void parallelFullLPInlineFlow(String modelName, int nodes, int nJobs) {
 
         WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, nodes);
@@ -230,7 +131,7 @@ public class Sample {
         long startTime = System.nanoTime();
         List<WMLJob> jobs = new ArrayList<WMLJob>();
         JSONArray input_data = new JSONArray();
-        input_data.put(createDataFromFile(filename));
+        input_data.put(wml.createDataFromFile(modelName, "stc/resources/" + modelName));
         for (int i=0; i<nJobs; i++) {
             WMLJob job = wml. createJob(deployment_id, input_data, null, null, null);
             jobs.add(job);
@@ -267,7 +168,7 @@ public class Sample {
         //deleteDeployment(wml, deployment_id);
     }
 
-    public void fullLPInlineFLow(String filename, int nJobs) {
+    public void fullLPInlineFLow(String modelName, int nJobs) {
 
         WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
         String deployment_id = createAndDeployEmptyModel(wml, WMLConnector.ModelType.CPLEX_12_9, WMLConnector.TShirtSize.S, 1);
@@ -275,7 +176,7 @@ public class Sample {
         long startTime = System.nanoTime();
         for (int i=0; i<nJobs; i++) {
             JSONArray input_data = new JSONArray();
-            input_data.put(createDataFromFile(filename));
+            input_data.put(wml.createDataFromFile(modelName, "src/resources/" + modelName));
             WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null, null);
             getLogFromJob(job); // don't log
             getSolutionFromJob(job); // don'tlog
@@ -506,9 +407,9 @@ public class Sample {
 
         COSConnector cos = new COSConnectorImpl(CREDENTIALS);
         JSONArray input_data = new JSONArray();
-        input_data.put(createDataFromCSV("diet_food.csv"));
-        input_data.put(createDataFromCSV("diet_food_nutrients.csv"));
-        input_data.put(createDataFromCSV("diet_nutrients.csv"));
+        input_data.put(wml.createDataFromCSV("diet_food.csv", "src/resources/diet_food.csv"));
+        input_data.put(wml.createDataFromCSV("diet_food_nutrients.csv", "src/resources/diet_food_nutrients.csv"));
+        input_data.put(wml.createDataFromCSV("diet_nutrients.csv", "src/resources/diet_nutrients.csv"));
         JSONArray output_data_references = null;
         if (useOutputDataReferences) {
             output_data_references = new JSONArray();
@@ -605,7 +506,7 @@ public class Sample {
         String deployment_id = wml.deployModel("json-test-opl-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
         LOGGER.info("deployment_id = "+ deployment_id);
 
-        JSONArray input_data = createDataFromJSONPayload("test_payload_input_job.json");
+        JSONArray input_data = wml.createDataFromJSONPayload("src/resources/test_payload_input_job.json");
 
         WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null,null);
         LOGGER.info("Log:" + getLogFromJob(job));
@@ -649,9 +550,9 @@ public class Sample {
         LOGGER.info("Test create job.");
         String deployment_id = createAndDeployDietPythonModel(wml);
         JSONArray input_data = new JSONArray();
-        input_data.put(createDataFromCSV("diet_food.csv"));
-        input_data.put(createDataFromCSV("diet_food_nutrients.csv"));
-        input_data.put(createDataFromCSV("diet_nutrients.csv"));
+        input_data.put(wml.createDataFromCSV("diet_food.csv", "src/resources/diet_food.csv"));
+        input_data.put(wml.createDataFromCSV("diet_food_nutrients.csv", "src/resources/diet_food_nutrients.csv"));
+        input_data.put(wml.createDataFromCSV("diet_nutrients.csv", "src/resources/diet_nutrients.csv"));
         JSONArray output_data_references = null;
         startTime = System.nanoTime();
         midTime = startTime;
@@ -667,6 +568,16 @@ public class Sample {
 
 
         deleteDeployment(wml, deployment_id);
+    }
+
+    void createSpace(String name) {
+        LOGGER.info("Test v4 final.");
+        WMLConnector wml = new WMLConnectorImpl(CREDENTIALS);
+
+        LOGGER.info("Spaces: " + wml.getDeploymentSpaces());
+
+        wml.createDeploymentSpace(name);
+        LOGGER.info("Spaces: " + wml.getDeploymentSpaces());
     }
 
     void testV4final() {
@@ -687,6 +598,8 @@ public class Sample {
     }
     public static void main(String[] args) {
         Sample main = new Sample();
+
+        //main.createSpace("test_space_2");
 
         //main.testV4final();
 

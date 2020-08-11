@@ -18,7 +18,6 @@ public abstract class ConnectorImpl {
 
     private static final Logger LOGGER = Logger.getLogger(ConnectorImpl.class.getName());
 
-
     private static final int IAM_TIMEOUT = 3600;
 
     String iam_url;
@@ -245,4 +244,14 @@ public abstract class ConnectorImpl {
         return res;
     }
 
+
+    public static byte[] getFileContentAsBytes(String inputFilename)  {
+        byte[] bytes = null;
+        try {
+            bytes = Files.readAllBytes(Paths.get(inputFilename));
+        } catch (IOException e) {
+            LOGGER.severe("Error getting file" + e.getStackTrace());
+        }
+        return bytes;
+    }
 }

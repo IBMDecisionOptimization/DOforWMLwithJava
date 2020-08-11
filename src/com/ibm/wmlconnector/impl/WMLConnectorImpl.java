@@ -8,19 +8,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.swing.*;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
 import java.util.*;
 
 
 
 public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
-
-    public static boolean USE_V4_FINAL = false;
 
     public static String RESULTS_FORMAT = "XML";
     private static final Logger LOGGER = Logger.getLogger(WMLConnectorImpl.class.getName());
@@ -34,10 +28,10 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
     String api_url = null;
 
     public WMLConnectorImpl(Credentials credentials) {
-        super(credentials.IAM_URL, USE_V4_FINAL ? credentials.USER_APIKEY : credentials.WML_APIKEY);
+        super(credentials.IAM_URL, credentials.USE_V4_FINAL ? credentials.USER_APIKEY : credentials.WML_APIKEY);
         this.credentials = credentials;
         this.wml_url = credentials.WML_URL;
-        if (USE_V4_FINAL) {
+        if (credentials.USE_V4_FINAL) {
             api_url = credentials.API_URL;
             LOGGER.info("WMLConnector using V4 final APIs");
         } else {
@@ -74,7 +68,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 headers.put("cache-control", "no-cache");
 
                 String url = "";
-                if (USE_V4_FINAL)
+                if (credentials.USE_V4_FINAL)
                     url = wml_url + "/ml/v4/deployment_jobs/" + job_id + "?version="+credentials.WML_VERSION+"&space_id="+credentials.WML_SPACE_ID;
                 else
                     url = wml_url + "/v4/jobs/" + job_id;
@@ -257,6 +251,87 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         }
     }
 
+
+    @Override
+    public JSONArray createDataFromJSONPayload(String fileName) {
+        String file = getFileContent(fileName);
+
+        JSONObject payload = new JSONObject(file);
+        return payload.getJSONObject("decision_optimization").getJSONArray("input_data");
+    }
+
+    @Override
+    public JSONObject createDataFromCSV(String id, String fileName) {
+
+        JSONObject data = new JSONObject();
+        data.put("id", id);
+
+        JSONArray fields = new JSONArray();
+        JSONArray all_values = new JSONArray();
+        String file = getFileContent(fileName);
+        String[] lines = file.split("\n");
+        int nlines = lines.length;
+        String[] fields_array = lines[0].split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+        int nfields = fields_array.length;
+        for (int i=0; i<nfields; i++) {
+            String field = fields_array[i];
+            if (field.charAt(0) == '"')
+                field = field.substring(1);
+            if  (field.charAt(field.length()-1) == '"')
+                field = field.substring(0, field.length()-1);
+            fields.put(field);
+        }
+        data.put("fields", fields);
+
+        for (int i = 1; i<nlines; i++) {
+            JSONArray values = new JSONArray();
+            String[] values_array = lines[i].split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+            for (int j=0; j<nfields; j++) {
+                String value = values_array[j];
+                if (value.charAt(0) == '"')
+                    value = value.substring(1);
+                if (value.charAt(value.length() - 1) == '"')
+                    value = value.substring(0, value.length() - 1);
+
+                try {
+                    int ivalue = Integer.parseInt(value);
+                    values.put(ivalue);
+                } catch (NumberFormatException e) {
+                    try {
+                        double dvalue = Double.parseDouble(value);
+                        values.put(dvalue);
+                    } catch (NumberFormatException e2) {
+                        values.put(value);
+                    }
+                }
+            }
+            all_values.put(values);
+        }
+        data.put("values", all_values);
+        return data;
+    }
+
+    @Override
+    public JSONObject createDataFromFile(String id, String fileName) {
+
+        byte[] bytes = getFileContentAsBytes(fileName);
+        byte[] encoded = Base64.getEncoder().encode(bytes);
+
+        JSONObject data = new JSONObject();
+        data.put("id", id);
+
+        JSONArray fields = new JSONArray();
+        fields.put("___TEXT___");
+        data.put("fields", fields);
+
+        JSONArray values = new JSONArray();
+        values.put(new JSONArray().put(new String(encoded)));
+        data.put("values", values);
+
+        return data;
+    }
+
+
     @Override
     public WMLJob createJob(String deployment_id,
                             JSONArray input_data,
@@ -268,13 +343,13 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         try {
             JSONObject payload = new JSONObject();
 
-            if (USE_V4_FINAL) {
+            if (credentials.USE_V4_FINAL) {
                 payload.put("name", "Job_for_"+deployment_id);
                 payload.put("space_id", credentials.WML_SPACE_ID);
             }
 
             JSONObject deployment = new JSONObject();
-            if (USE_V4_FINAL)
+            if (credentials.USE_V4_FINAL)
                 deployment.put("id",deployment_id);
             else
                 deployment.put("href","/v4/deployments/"+deployment_id);
@@ -329,7 +404,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             headers.put("Content-Type", "application/json");
 
             String url = null;
-            if (USE_V4_FINAL)
+            if (credentials.USE_V4_FINAL)
                 url = wml_url + "/ml/v4/deployment_jobs?version="+credentials.WML_VERSION+"&space_id="+credentials.WML_SPACE_ID;
             else
                 url = wml_url + "/v4/jobs";
@@ -338,7 +413,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             JSONObject json = new JSONObject(res);
 
             String job_id = null;
-            if (USE_V4_FINAL)
+            if (credentials.USE_V4_FINAL)
                 job_id = (String)((JSONObject)json.get("metadata")).get("id");
             else
                 job_id = (String)((JSONObject)json.get("metadata")).get("guid");
@@ -364,7 +439,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
         WMLJob job  = createJob(deployment_id, input_data, input_data_references, output_data, output_data_references);
 
-        LOGGER.info("job_id = " + job.getId());
+        LOGGER.fine("job_id = " + job.getId());
 
         String state = null;
         do {
@@ -431,7 +506,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
             JSONObject payload = null;
             String url = null;
-            if (USE_V4_FINAL) {
+            if (credentials.USE_V4_FINAL) {
                 payload = new JSONObject().put("name", modelName)
                         .put("description", modelName)
                         .put("type", type.toString())
@@ -446,7 +521,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             String res = doPost(url, headers, payload.toString());
 
             JSONObject json = new JSONObject(res);
-            if (USE_V4_FINAL)
+            if (credentials.USE_V4_FINAL)
                 modelId = json.getJSONObject("metadata").getString("id");
             else
                 modelId = json.getJSONObject("metadata").getString("guid");
@@ -464,7 +539,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 byte[] bytes = getBinaryFileContent(modelAssetFilePath);
 
                 String url = null;
-                if (USE_V4_FINAL) {
+                if (credentials.USE_V4_FINAL) {
                     url = wml_url + "/ml/v4/models/" + modelId + "/content?version="+credentials.WML_VERSION + "&content_format=native&space_id=" + credentials.WML_SPACE_ID;
                 } else {
                     url = wml_url + "/v4/models/" + modelId + "/content";
@@ -505,7 +580,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
         JSONObject payload = null;
         String url = null;
-        if (USE_V4_FINAL) {
+        if (credentials.USE_V4_FINAL) {
              payload = new JSONObject()
                     .put("name", deployName)
                     .put("space_id", credentials.WML_SPACE_ID)
@@ -523,7 +598,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
         JSONObject json = new JSONObject(res);
         String deployment_id = null;
-        if (USE_V4_FINAL)
+        if (credentials.USE_V4_FINAL)
             deployment_id = json.getJSONObject("metadata").getString("id");
         else
             deployment_id = json.getJSONObject("metadata").getString("guid");
@@ -546,7 +621,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         headers.put("Content-Type", "application/json");
 
         String url = null;
-        if (USE_V4_FINAL)
+        if (credentials.USE_V4_FINAL)
             url = wml_url + "/ml/v4/deployments/" + deployment_id + "?version="+credentials.WML_VERSION+"&space_id="+credentials.WML_SPACE_ID;
         else
             url = wml_url + "/v4/deployments/" + deployment_id;
@@ -583,7 +658,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
     }
 
     @Override
-    public void createDeploymentSpace(String name) {
+    public String createDeploymentSpace(String name) {
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Accept", "application/json");
         headers.put("Authorization", "bearer " + bearerToken);
@@ -617,6 +692,8 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         payload.put("compute", new JSONArray().put(new JSONObject().put("name", credentials.WML_NAME).put("crn", credentials.WML_CRN)));
 
         String res = doPost(api_url + "/v2/spaces", headers, payload.toString());
+        JSONObject json = new JSONObject(res);
+        return json.getJSONObject("resources").getString("ig");
     }
 
     public JSONObject getDeploymentSpaces() {
@@ -640,7 +717,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         headers.put("cache-control", "no-cache");
 
         String url = "";
-        if (USE_V4_FINAL)
+        if (credentials.USE_V4_FINAL)
             url = wml_url + "/ml/v4/deployments?space_id="+credentials.WML_SPACE_ID+"&version=" +credentials. WML_VERSION;
         else
             url = wml_url + "/v4/deployments";

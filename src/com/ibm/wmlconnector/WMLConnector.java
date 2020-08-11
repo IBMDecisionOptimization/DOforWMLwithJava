@@ -72,13 +72,18 @@ public interface WMLConnector extends Connector {
     public JSONObject getInstances();
 
     public JSONObject getSoftwareSpecifications();
-    public void createDeploymentSpace(String name);
+    public String createDeploymentSpace(String name);
     public JSONObject getDeploymentSpaces();
 
     public String createNewModel(String modelName, ModelType type, String modelAssetFilePath, Runtime runtime);
     public String createNewModel(String modelName, ModelType type, String modelAssetFilePath);
     public String getModelHref(String modelId, boolean displayModel);
     public String deployModel(String deployName, String model_id, TShirtSize size, int nodes);
+
+    public JSONArray createDataFromJSONPayload(String fileName);
+    public JSONObject createDataFromCSV(String id, String fileName);
+    public JSONObject createDataFromFile(String id, String fileName);
+
     public WMLJob createJob(String deployment_id,
                             JSONArray input_data,
                             JSONArray input_data_references,

@@ -45,35 +45,6 @@ public class CPWithWML extends ExternalCP {
         wml_name = name;
     }
 
-    byte[] getFileContentAsBytes(String inputFilename)  {
-        byte[] bytes = null;
-        try {
-            bytes = Files.readAllBytes(Paths.get(inputFilename));
-        } catch (IOException e) {
-            LOGGER.severe("Error getting file" + e.getStackTrace());
-        }
-        return bytes;
-    }
-
-    JSONObject createDataFromFile(String fileName, String modelName) {
-
-        byte[] bytes = getFileContentAsBytes(fileName);
-        byte[] encoded = Base64.getEncoder().encode(bytes);
-
-        JSONObject data = new JSONObject();
-        data.put("id", modelName);
-
-        JSONArray fields = new JSONArray();
-        fields.put("___TEXT___");
-        data.put("fields", fields);
-
-        JSONArray values = new JSONArray();
-        values.put(new JSONArray().put(new String(encoded)));
-        data.put("values", values);
-
-        return data;
-    }
-
     @Override
     protected JSONObject externalSolve() throws IloException {
 
@@ -104,7 +75,7 @@ public class CPWithWML extends ExternalCP {
                 LOGGER.fine("deployment_id = " + deployment_id);
 
                 JSONArray input_data = new JSONArray();
-                input_data.put(createDataFromFile(model.getAbsolutePath(), wml_name+".cpo"));
+                input_data.put(wml.createDataFromFile(wml_name+".cpo", model.getAbsolutePath()));
                 WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null, null);
 
                 switch (job.getSolveStatus()) {

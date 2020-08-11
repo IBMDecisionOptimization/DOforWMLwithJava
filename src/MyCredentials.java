@@ -1,5 +1,4 @@
 import com.ibm.wmlconnector.Credentials;
-import com.ibm.wmlconnector.impl.WMLConnectorImpl;
 
 public class MyCredentials extends Credentials {
 
@@ -7,7 +6,7 @@ public class MyCredentials extends Credentials {
     public MyCredentials() {
         super();
 
-        WMLConnectorImpl.USE_V4_FINAL = false;
+        USE_V4_FINAL = false;
 
         // PROD
         IAM_URL = "https://iam.cloud.ibm.com/identity/token";
