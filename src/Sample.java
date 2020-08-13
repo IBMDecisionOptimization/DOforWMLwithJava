@@ -131,7 +131,7 @@ public class Sample {
         long startTime = System.nanoTime();
         List<WMLJob> jobs = new ArrayList<WMLJob>();
         JSONArray input_data = new JSONArray();
-        input_data.put(wml.createDataFromFile(modelName, "stc/resources/" + modelName));
+        input_data.put(wml.createDataFromFile(modelName, "src/resources/" + modelName));
         for (int i=0; i<nJobs; i++) {
             WMLJob job = wml. createJob(deployment_id, input_data, null, null, null);
             jobs.add(job);
@@ -606,7 +606,7 @@ public class Sample {
         //main.testPerfs(1);
 
         // Python
-        main.fullDietPythonFlow(false, 1);
+        //main.fullDietPythonFlow(false, 1);
 
         // OPL
         //main.fullWarehouseOPLFlow(true);
@@ -626,7 +626,7 @@ public class Sample {
 
         //main.fullLPInlineFLow("bigone.mps", 1 );
         //main.fullLPInlineFLow("diet.lp", 1 );
-        //main.parallelFullLPInlineFlow("diet.lp", 5, 100 );
+        main.parallelFullLPInlineFlow("diet.lp", 5, 20 );
         //main.fullLPInlineFLow("acc-tight4.lp", 20 );
         //main.parallelFullLPInlineFlow("acc-tight4.lp", 5, 100 );
 

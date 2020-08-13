@@ -585,7 +585,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                     .put("name", deployName)
                     .put("space_id", credentials.WML_SPACE_ID)
                     .put("asset", new JSONObject().put("id", model_id))
-                    .put("hardware_spec", new JSONObject().put("name", size.toString()))
+                    .put("hardware_spec", new JSONObject().put("name", size.toString()).put("num_nodes", nodes))
                     .put("batch", new JSONObject());
              url = wml_url + "/ml/v4/deployments?version="+credentials.WML_VERSION;
         } else {
