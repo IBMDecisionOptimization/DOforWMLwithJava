@@ -39,6 +39,7 @@
  */
 
 import ilog.concert.*;
+import ilog.cplex.CplexWithWML;
 import ilog.cplex.IloCplex;
 import ilog.cplex.IloCplex.MultiObjIntInfo;
 import ilog.cplex.IloCplex.MultiObjLongInfo;
@@ -289,7 +290,8 @@ public class Diet {
 
         Data data = new Data(filename);
         final int nFoods = data.nFoods;
-        IloCplex cplex = new IloCplex();
+        //IloCplex cplex = new IloCplex();
+        IloCplex cplex = new CplexWithWML( new MyProdBetaV4Credentials());
         try {
             // Build model
             IloNumVar[] buy = new IloNumVar[nFoods];

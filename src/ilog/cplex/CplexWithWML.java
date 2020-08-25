@@ -37,6 +37,7 @@ public class CplexWithWML extends ExternalCplex {
 
     Credentials wml_credentials;
     String wml_name;
+    public CplexWithWML(Credentials credentials) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, "CPLEX"); }
     public CplexWithWML(Credentials credentials, String name) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, name); }
     public CplexWithWML(NamingStrategy namingStrategy, Credentials credentials, String name) throws IloException {
         super(namingStrategy);
@@ -45,7 +46,7 @@ public class CplexWithWML extends ExternalCplex {
     }
 
     @Override
-    protected Solution externalSolve(Set<String> knownVariables) throws IloException {
+    protected Solution externalSolve(Set<String> knownVariables, Set<String> knownConstraints) throws IloException {
 
         try {
             // Create temporary files for model input and solution output.
@@ -85,7 +86,7 @@ public class CplexWithWML extends ExternalCplex {
                         myWriter.write(job.getSolution());
                         myWriter.close();
                         System.out.println(job.getLog().replaceAll("\n\n", "\n"));
-                        return new Solution(solution, knownVariables);
+                        return new Solution(solution, knownVariables, knownConstraints);
                 }
 
 

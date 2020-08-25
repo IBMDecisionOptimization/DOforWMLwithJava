@@ -34,22 +34,12 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import ilog.concert.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import ilog.concert.IloException;
-import ilog.concert.IloLPMatrix;
-import ilog.concert.IloLinearIntExpr;
-import ilog.concert.IloLinearIntExprIterator;
-import ilog.concert.IloLinearNumExpr;
-import ilog.concert.IloLinearNumExprIterator;
-import ilog.concert.IloNumExpr;
-import ilog.concert.IloNumVar;
-import ilog.concert.IloObjective;
-import ilog.concert.IloRange;
 
 /** Base class for external solves.
  * @author daniel.junglas@de.ibm.com
@@ -106,6 +96,29 @@ public abstract class ExternalCplex extends IloCplex {
     }
   }
 
+  private void addRange(HashMap<String, IloRange> name2rng, HashMap<IloRange,String> oldNames, IloRange v) throws IloException {
+    String name = v.getName();
+    switch (namingStrategy) {
+      case MAKE_NAMES:
+        if (!oldNames.containsKey(v)) {
+          oldNames.put(v, name); // even if name == null!
+          name = String.format("%x", oldNames.size());
+          v.setName(name);
+          name2rng.put(name, v);
+        }
+        break;
+      case USE_NAMES:
+        if (name == null)
+          throw new IloException("Variable without name");
+        final IloRange u = name2rng.get(name);
+        if (u != null && u != v)
+          throw new IloException("Duplicate variable name " + name);
+        else if (u == null)
+          name2rng.put(name, v);
+        break;
+    }
+  }
+
   private void addExpr(HashMap<String,IloNumVar> name2var, HashMap<IloNumVar,String> oldNames, IloNumExpr e) throws IloException {
     boolean ok = false;
     if (e instanceof IloLinearNumExpr) {
@@ -135,6 +148,10 @@ public abstract class ExternalCplex extends IloCplex {
     public HashMap<String,Double> name2val = new HashMap<String,Double>();
     /** Map variable objects to values. */
     public HashMap<IloNumVar, Double> var2val = new HashMap<IloNumVar, Double>();
+    /** Map range names to values. */
+    public HashMap<String,Double> name2dual = new HashMap<String,Double>();
+    /** Map range objects to values. */
+    public HashMap<IloRange, Double> rng2dual = new HashMap<IloRange, Double>();
     /** Objective value of solution. */
     public double objective = Double.NaN;
     /** CPLEX status. */
@@ -145,8 +162,14 @@ public abstract class ExternalCplex extends IloCplex {
     public boolean dfeas = false;
     
     public Solution() {}
-    public Solution(File solutionXml, Set<String> knownVariables) throws IOException { this(); parse(solutionXml, knownVariables); }
-    public Solution(InputStream solutionXml, Set<String> knownVariables) throws IOException { this(); parse(solutionXml, knownVariables); }
+    public Solution(File solutionXml, Set<String> knownVariables, Set<String> knownConstraints) throws IOException {
+      this();
+      parse(solutionXml, knownVariables, knownConstraints);
+    }
+    public Solution(InputStream solutionXml, Set<String> knownVariables, Set<String> knownConstraints) throws IOException {
+      this();
+      parse(solutionXml, knownVariables, knownConstraints);
+    }
     
     public void reset() {
       feasible = false;
@@ -159,17 +182,17 @@ public abstract class ExternalCplex extends IloCplex {
     }
     
     /** Parse a CPLEX <code>.sol</code> file.
-     * See {@link #parse(InputStream, Set)} for details.
+     * See {@link #parse(InputStream, Set, Set)} for details.
      */
-    public void parse(File solutionXml, Set<String> knownVariables) throws IOException {
+    public void parse(File solutionXml, Set<String> knownVariables, Set<String> knownConstraints) throws IOException {
       reset();
       try (FileInputStream fis = new FileInputStream(solutionXml)) {
-        parse(fis, knownVariables);
+        parse(fis, knownVariables, knownConstraints);
       }
     }
     
     private enum ParserState {
-      INITIAL, SOLUTION, HEADER, QUALITY, VARIABLES,
+      INITIAL, SOLUTION, HEADER, QUALITY, VARIABLES, LINEAR_CONSTRAINTS,
       /** Unknown children of a <CPLEXSolution> element. */
       UNKNOWN,
       FINISHED
@@ -197,7 +220,7 @@ public abstract class ExternalCplex extends IloCplex {
      * @param knownVariables The names of the variables for which values should be extracted from <code>solutionXml</code>.
      * @throws IOException If an input/output error occurs or mandatory solution information is missing.
      */
-    public void parse(InputStream solutionXml, Set<String> knownVariables) throws IOException {
+    public void parse(InputStream solutionXml, Set<String> knownVariables, Set<String> knownConstraints) throws IOException {
       reset();
       boolean ok = false;
       try {
@@ -246,12 +269,15 @@ public abstract class ExternalCplex extends IloCplex {
               else if (element.equals("variables")) {
                 state = ParserState.VARIABLES;
               }
+              else if (element.equals("linearConstraints")) {
+                state = ParserState.LINEAR_CONSTRAINTS;
+              }
               else {
                 state = ParserState.UNKNOWN;
                 unknownStack.add(element);
               }
               break;
-            case VARIABLES:              
+            case VARIABLES:
               if (!element.equals("variable"))
                 throw new IOException(MALFORMED_XML);
               attrs = getAttributes(reader, "name", "value");
@@ -261,6 +287,20 @@ public abstract class ExternalCplex extends IloCplex {
                 throw new IOException("Variable without value in solution file for solution " + solnum);
               if (knownVariables.contains(attrs[0]))
                 this.name2val.put(attrs[0], new Double(attrs[1]));
+              break;
+            case LINEAR_CONSTRAINTS:
+              if (!element.equals("constraint"))
+                throw new IOException(MALFORMED_XML);
+              attrs = getAttributes(reader, "name", "dual");
+              if (attrs[0] == null)
+                throw new IOException("Constraint without name in solution file for solution " + solnum);
+              if (attrs[1] == null) {
+                // CAN BE MIP
+                //throw new IOException("Constraint without dual value in solution file for solution " + solnum);
+              } else {
+                if (knownConstraints.contains(attrs[0]))
+                  this.name2dual.put(attrs[0], new Double(attrs[1]));
+              }
               break;
             case UNKNOWN:
               unknownStack.add(element);
@@ -300,6 +340,14 @@ public abstract class ExternalCplex extends IloCplex {
               else
                 throw new IOException(MALFORMED_XML);
               break;
+            case LINEAR_CONSTRAINTS:
+              if (element.equals("constraint")) { /* nothing */ }
+              else if (element.equals("linearConstraints")) {
+                state = ParserState.SOLUTION;
+              }
+              else
+                throw new IOException(MALFORMED_XML);
+              break;
             case UNKNOWN:
               if (unknownStack.size() == 0 || !element.equals(unknownStack.lastElement()))
                 throw new IOException(MALFORMED_XML);
@@ -325,7 +373,7 @@ public abstract class ExternalCplex extends IloCplex {
     }
 
     /** Parse a CPLEX <code>.sol</code> file.
-     * This is not as fast and memory efficient as {@link #parse(InputStream, Set)} but much simpler code.
+     * This is not as fast and memory efficient as {@link #parse(InputStream, Set, Set)} but much simpler code.
      * @param solutionXml The CPLEX <code>.sol</code> file to parse.
      * @param knownVariables The names of the variables for which values should be extracted from <code>solutionXml</code>.
      * @throws IOException If an input/output error occurs or mandatory solution information is missing.
@@ -395,49 +443,69 @@ public abstract class ExternalCplex extends IloCplex {
   public boolean solve() throws IloException {
     result = null;
     
-    HashMap<IloNumVar,String> oldNames = null;
+    HashMap<IloNumVar,String> oldVarNames = null;
     if (namingStrategy == NamingStrategy.MAKE_NAMES)
-      oldNames = new HashMap<IloNumVar, String>();
+      oldVarNames = new HashMap<IloNumVar, String>();
+
+    HashMap<IloRange,String> oldRngNames = null;
+    if (namingStrategy == NamingStrategy.MAKE_NAMES)
+      oldRngNames = new HashMap<IloRange, String>();
+
 
     try {
       // In order to consume a solution file, _all_ variables must have
       // a name! Go through the model and collect all variables, thereby
       // checking that they have a name and names are unique.
       final HashMap<String,IloNumVar> vars = new HashMap<String,IloNumVar>();
+      final HashMap<String,IloRange> rngs = new HashMap<String,IloRange>();
       for (Iterator<?> it = iterator(); it.hasNext(); /* nothing */) {
         final Object o = it.next();
         if (o instanceof IloLPMatrix) {
           for (final IloNumVar v : ((IloLPMatrix)o).getNumVars())
-            addVariable(vars, oldNames, v);
+            addVariable(vars, oldVarNames, v);
         }
         else if (o instanceof IloObjective) {
-          addExpr(vars, oldNames, ((IloObjective)o).getExpr());
+          addExpr(vars, oldVarNames, ((IloObjective)o).getExpr());
         }
         else if (o instanceof IloRange) {
-          addExpr(vars, oldNames, ((IloRange)o).getExpr());
+          addRange(rngs, oldRngNames, (IloRange)o);
+          addExpr(vars, oldVarNames, ((IloRange)o).getExpr());
         }
         else if (o instanceof IloNumVar) {
-          addVariable(vars, oldNames, (IloNumVar)o);
+          addVariable(vars, oldVarNames, (IloNumVar)o);
         }
-        else
+        else if (o instanceof IloConversion) {
+          // ignore
+        } else
           throw new IloException("Cannot handle " + o);
       }
 
       // Now perform the solve
-      result = externalSolve(vars.keySet());
+      result = externalSolve(vars.keySet(), rngs.keySet());
 
       // Transfer non-zeros indexed by name to non-zeros indexed by object.
       for (final Map.Entry<String, Double> e : result.name2val.entrySet()) {
         result.var2val.put(vars.get(e.getKey()), e.getValue());
       }
       result.name2val.clear();
+
+      // Transfer non-zeros indexed by name to non-zeros indexed by object.
+      for (final Map.Entry<String, Double> e : result.name2dual.entrySet()) {
+        result.rng2dual.put(rngs.get(e.getKey()), e.getValue());
+      }
+      result.name2dual.clear();
       
       return result.feasible;
     }
     finally {
       // Restore original names if necessary.
-      if (oldNames != null)
-        for (Map.Entry<IloNumVar, String> e : oldNames.entrySet())
+      if (oldVarNames != null)
+        for (Map.Entry<IloNumVar, String> e : oldVarNames.entrySet())
+          e.getKey().setName(e.getValue());
+
+      // Restore original names if necessary.
+      if (oldRngNames != null)
+        for (Map.Entry<IloRange, String> e : oldRngNames.entrySet())
           e.getKey().setName(e.getValue());
     }
   }
@@ -451,7 +519,7 @@ public abstract class ExternalCplex extends IloCplex {
    * @return Solution information for the solve.
    * @throws IloException if anything goes wrong.
    */
-  protected abstract Solution externalSolve(Set<String> variables) throws IloException;
+  protected abstract Solution externalSolve(Set<String> variables, Set<String> ranges) throws IloException;
   
   // Below we overwrite a bunch of IloCplex functions that query solutions.
   // Add your own overwrites if you need more.
@@ -482,7 +550,27 @@ public abstract class ExternalCplex extends IloCplex {
     }
     return ret;
   }
-  
+
+  @Override
+  public double getDual(IloRange r) throws IloException {
+    if (result == null)
+      throw new IloException("No solution available");
+    final Double d = result.rng2dual.get(r);
+    return (d == null) ? 0.0 : d.doubleValue();
+  }
+
+  @Override
+  public double[] getDuals(IloRange[] r) throws IloException {
+    if (result == null)
+      throw new IloException("No solution available");
+    final double[] ret = new double[r.length];
+    for (int i = 0; i < r.length; ++i) {
+      final Double d = result.rng2dual.get(r[i]);
+      ret[i] = (d == null) ? 0.0 : d.doubleValue();
+    }
+    return ret;
+  }
+
   @Override
   public Status getStatus() throws IloException {
     if (result == null)
