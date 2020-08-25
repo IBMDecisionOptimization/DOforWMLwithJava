@@ -50,7 +50,7 @@ From outside of the engine class, everything will behave the same (see supported
 
 ### How to start?
 
-You can start looking at one of the example, such as [`Diet.java`](Diet.java) for CPLEX or [`Color.java`](Color.java) for CP.
+You can start looking at one of the example, such as [`Diet.java`](src/Diet.java) for CPLEX or [`Color.java`](src/Color.java) for CP.
 To replicate the same behaviour on your application, you should include all classes from the different packages into your project. 
 
 You will see in the examples, that from an original code where the engine is created using:
