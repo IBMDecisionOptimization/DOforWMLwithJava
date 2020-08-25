@@ -37,7 +37,7 @@ public class CplexWithWML extends ExternalCplex {
 
     Credentials wml_credentials;
     String wml_name;
-    public CplexWithWML(Credentials credentials) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, "CPLEX"); }
+    public CplexWithWML(Credentials credentials) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, "CPLEXWithWML"); }
     public CplexWithWML(Credentials credentials, String name) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, name); }
     public CplexWithWML(NamingStrategy namingStrategy, Credentials credentials, String name) throws IloException {
         super(namingStrategy);

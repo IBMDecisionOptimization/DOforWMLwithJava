@@ -19,6 +19,8 @@ import com.ibm.wmlconnector.WMLJob;
 import com.ibm.wmlconnector.impl.ConnectorImpl;
 import com.ibm.wmlconnector.impl.WMLConnectorImpl;
 import ilog.concert.IloException;
+import ilog.concert.IloNumVar;
+import ilog.concert.IloRange;
 import ilog.concert.IloSolution;
 import ilog.cplex.ExternalCplex;
 import org.json.JSONArray;
@@ -30,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -39,6 +42,9 @@ public class CPWithWML extends ExternalCP {
 
     protected Credentials wml_credentials;
     protected String wml_name;
+    public CPWithWML(Credentials credentials) throws IloException {
+        this(credentials, "CPWithWML");
+    }
     public CPWithWML(Credentials credentials, String name) throws IloException {
         super();
         wml_credentials = credentials;
@@ -46,7 +52,7 @@ public class CPWithWML extends ExternalCP {
     }
 
     @Override
-    protected JSONObject externalSolve() throws IloException {
+    protected Solution externalSolve(Set<String> vars, Set<String> intervalVars) throws IloException {
 
         WMLConnectorImpl.RESULTS_FORMAT = "JSON";
 
@@ -84,7 +90,7 @@ public class CPWithWML extends ExternalCP {
                         return null;
                     default:
                         // We have a feasible solution. Parse the solution file
-                        return new JSONObject(job.getSolution());
+                        return new Solution(new JSONObject(job.getSolution()), vars, intervalVars);
                 }
 
 

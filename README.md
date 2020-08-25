@@ -88,8 +88,19 @@ Currently callbacks and goals are not supported.
  
 #### CP
 
-**TO BE DONE**
-
+##### Supported API
+```
+  public boolean solve() throws IloException      
+  public double getValue(IloNumVar v)
+  public boolean isPresent(IloIntervalVar a)
+  public String getDomain(IloIntervalVar var) throws IloException
+  public int getStartMin(IloIntervalVar a)
+  public int getStartMax(IloIntervalVar a)
+  public int getSizeMin(IloIntervalVar a)
+  public int getSizeMax(IloIntervalVar a)
+  public int getEndMin(IloIntervalVar a)
+  public int getEndMax(IloIntervalVar a)
+```
 
 ## The `com.ibm` package
 

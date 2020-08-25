@@ -291,7 +291,7 @@ public class Diet {
         Data data = new Data(filename);
         final int nFoods = data.nFoods;
         //IloCplex cplex = new IloCplex();
-        IloCplex cplex = new CplexWithWML( new MyProdBetaV4Credentials());
+        IloCplex cplex = new CplexWithWML(new MyProdBetaV4Credentials());
         try {
             // Build model
             IloNumVar[] buy = new IloNumVar[nFoods];

@@ -31,8 +31,8 @@ public class Color {
     public static String[] Names = {"blue", "white", "yellow", "green"}; 
     public static void main(String[] args) {
         try {
-            IloCP cp = new IloCP();
-            //IloCP cp = new CPWithWML( new MyProdBetaV4Credentials(), "color");
+            //IloCP cp = new IloCP();
+            IloCP cp = new CPWithWML(new MyProdBetaV4Credentials());
             IloIntVar Belgium = cp.intVar(0, 3);
             IloIntVar Denmark = cp.intVar(0, 3);
             IloIntVar France = cp.intVar(0, 3);
