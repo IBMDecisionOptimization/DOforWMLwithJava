@@ -36,9 +36,12 @@ public class CplexWithWML extends ExternalCplex {
     private static final long serialVersionUID = 1;
 
     protected Credentials wml_credentials;
+    protected WMLConnectorImpl wml;
     protected WMLConnector.ModelType wml_type;
     protected WMLConnector.TShirtSize wml_size;
+    protected int wml_nodes = 1;
     protected String wml_name;
+    protected String deployment_id = null;
     public CplexWithWML(Credentials credentials) throws IloException {
         this(NamingStrategy.MAKE_NAMES, credentials, WMLConnector.ModelType.CPLEX_12_10, WMLConnector.TShirtSize.S, "CPLEXWithWML");
     }
@@ -51,6 +54,7 @@ public class CplexWithWML extends ExternalCplex {
     public CplexWithWML(NamingStrategy namingStrategy, Credentials credentials, WMLConnector.ModelType type,  WMLConnector.TShirtSize size, String name) throws IloException {
         super(namingStrategy);
         wml_credentials = credentials;
+        wml = new WMLConnectorImpl(wml_credentials);
         this.wml_type = type;
         this.wml_size = size;
         wml_name = name;
@@ -69,25 +73,26 @@ public class CplexWithWML extends ExternalCplex {
             final File parameters = File.createTempFile("cpx", ".prm");
             writeParam(parameters.getAbsolutePath());
             LOGGER.fine("Exported .prm file to " + parameters.getAbsolutePath());
+            boolean hasStartSolution = false;
             try {
 
-                int nodes = 1;
-                WMLConnectorImpl wml = new WMLConnectorImpl(wml_credentials);
-
-                String deployment_id = wml.getDeploymentIdByName(wml_name);
+                if (deployment_id == null)
+                    deployment_id = wml.getDeploymentIdByName(wml_name);
                 if (deployment_id == null) {
                     LOGGER.info("Creating model and deployment");
                     LOGGER.fine("Create Empty " + wml_type + " Model");
                     String model_id = wml.createNewModel(wml_name, wml_type, null);
                     LOGGER.fine("model_id = " + model_id);
 
-                    deployment_id = wml.deployModel(wml_name, model_id, wml_size, nodes);
+                    deployment_id = wml.deployModel(wml_name, model_id, wml_size, wml_nodes);
                 }
                 LOGGER.fine("deployment_id = " + deployment_id);
 
                 JSONArray input_data = new JSONArray();
                 input_data.put(wml.createDataFromFile(wml_name+".sav.gz", model.getAbsolutePath()));
                 input_data.put(wml.createDataFromFile(wml_name+".prm", parameters.getAbsolutePath()));
+                if (isMIP() && result != null && result.hasSolution()) // TODO only for MIP ?
+                    input_data.put(wml.createDataFromString(wml_name+".sol", result.getSolution()));
                 WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null, null);
 
                 switch (job.getSolveStatus()) {

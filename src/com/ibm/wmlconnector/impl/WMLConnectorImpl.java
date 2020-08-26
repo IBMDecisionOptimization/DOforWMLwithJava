@@ -309,6 +309,25 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
     }
 
     @Override
+    public JSONObject createDataFromString(String id, String text) {
+        byte[] bytes = text.getBytes();
+        byte[] encoded = Base64.getEncoder().encode(bytes);
+
+        JSONObject data = new JSONObject();
+        data.put("id", id);
+
+        JSONArray fields = new JSONArray();
+        fields.put("___TEXT___");
+        data.put("fields", fields);
+
+        JSONArray values = new JSONArray();
+        values.put(new JSONArray().put(new String(encoded)));
+        data.put("values", values);
+
+        return data;
+    }
+
+    @Override
     public JSONObject createDataFromFile(String id, String fileName) {
 
         byte[] bytes = getFileContentAsBytes(fileName);

@@ -119,6 +119,9 @@ public class MixBlend {
             System.out.println("Elements:");
             for(int j = 0; j < _nbElements; j++)
                System.out.println("(" + j + ") " + eVals[j]);
+
+            // Solve again to check the previous solution is taken into account
+            cplex.solve();
          }
       }
       catch (IloException exc) {

@@ -13,10 +13,8 @@
 // This class is in package ilog.cplex so that we can call some undocumented functions
 package ilog.cplex;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -40,6 +38,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import sun.misc.IOUtils;
 
 /** Base class for external solves.
  * @author daniel.junglas@de.ibm.com
@@ -143,6 +142,9 @@ public abstract class ExternalCplex extends IloCplex {
    *
    */
   protected static class Solution {
+
+    private String solution = null;
+
     boolean feasible = false;
     /** Map variable names to values. */
     public HashMap<String,Double> name2val = new HashMap<String,Double>();
@@ -160,7 +162,7 @@ public abstract class ExternalCplex extends IloCplex {
     public boolean pfeas = false;
     /** Dual feasible? */
     public boolean dfeas = false;
-    
+
     public Solution() {}
     public Solution(File solutionXml, Set<String> knownVariables, Set<String> knownConstraints) throws IOException {
       this();
@@ -170,8 +172,17 @@ public abstract class ExternalCplex extends IloCplex {
       this();
       parse(solutionXml, knownVariables, knownConstraints);
     }
-    
+
+    public boolean hasSolution() {
+      return solution != null;
+    }
+
+    public String getSolution() {
+      return solution;
+    }
+
     public void reset() {
+      solution = null;
       feasible = false;
       name2val = new HashMap<String, Double>();
       var2val = new HashMap<IloNumVar, Double>();
@@ -188,6 +199,16 @@ public abstract class ExternalCplex extends IloCplex {
       reset();
       try (FileInputStream fis = new FileInputStream(solutionXml)) {
         parse(fis, knownVariables, knownConstraints);
+      }
+      try (FileInputStream fis = new FileInputStream(solutionXml)) {
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = fis.read(buffer)) != -1) {
+          result.write(buffer, 0, length);
+        }
+        // StandardCharsets.UTF_8.name() > JDK 7
+        solution = result.toString("UTF-8");
       }
     }
     
@@ -220,8 +241,9 @@ public abstract class ExternalCplex extends IloCplex {
      * @param knownVariables The names of the variables for which values should be extracted from <code>solutionXml</code>.
      * @throws IOException If an input/output error occurs or mandatory solution information is missing.
      */
-    public void parse(InputStream solutionXml, Set<String> knownVariables, Set<String> knownConstraints) throws IOException {
+    private void parse(InputStream solutionXml, Set<String> knownVariables, Set<String> knownConstraints) throws IOException {
       reset();
+
       boolean ok = false;
       try {
         final String MALFORMED_XML = "Malformed XML";
@@ -438,11 +460,10 @@ public abstract class ExternalCplex extends IloCplex {
     }
   }
 
-  private Solution result = null;
+  protected Solution result = null;
 
   public boolean solve() throws IloException {
-    result = null;
-    
+
     HashMap<IloNumVar,String> oldVarNames = null;
     if (namingStrategy == NamingStrategy.MAKE_NAMES)
       oldVarNames = new HashMap<IloNumVar, String>();

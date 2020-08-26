@@ -80,6 +80,7 @@ public interface WMLConnector extends Connector {
     public String getModelHref(String modelId, boolean displayModel);
     public String deployModel(String deployName, String model_id, TShirtSize size, int nodes);
 
+    public JSONObject createDataFromString(String id, String text);
     public JSONArray createDataFromJSONPayload(String fileName);
     public JSONObject createDataFromCSV(String id, String fileName);
     public JSONObject createDataFromFile(String id, String fileName);
