@@ -67,9 +67,22 @@ IloCplex cplex = new CplexWithWML( new MyProdBetaV4Credentials());
 
 The new CPLEX class will behave exactly like the original one (see [supported API and limitations](#Supported-API-and-limitations)), you can call solve, get the variables values, etc
 
+You can use extended CplexWithWML constructors to set:
+* the type of model to use (to select a specific CPLEX versions)
+* the size of runtime to use (Small, Medium or Large)
+* the name of the deployment to use (and reuse)
+
 ### Supported API and limitations
 
 #### CPLEX
+
+The CPLEX parameters are exported and sent to WML.
+Some parameters can be overridden due to the WML settings, in particular:
+```
+CPXPARAM_Threads                                 1      # will be limited according to the runtime size
+CPXPARAM_Output_CloneLog                         -1
+CPXPARAM_Read_APIEncoding                        "utf-8"
+```
 
 ##### Supported API
 ```

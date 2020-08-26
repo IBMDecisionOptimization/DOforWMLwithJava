@@ -38,6 +38,7 @@
  * See the usage message for more details.
  */
 
+import com.ibm.wmlconnector.WMLConnector;
 import ilog.concert.*;
 import ilog.cplex.CplexWithWML;
 import ilog.cplex.IloCplex;
@@ -291,7 +292,7 @@ public class Diet {
         Data data = new Data(filename);
         final int nFoods = data.nFoods;
         //IloCplex cplex = new IloCplex();
-        IloCplex cplex = new CplexWithWML(new MyProdBetaV4Credentials());
+        IloCplex cplex = new CplexWithWML(new MyProdBetaV4Credentials(), WMLConnector.ModelType.CPLEX_12_10, WMLConnector.TShirtSize.M);
         try {
             // Build model
             IloNumVar[] buy = new IloNumVar[nFoods];
@@ -317,6 +318,8 @@ public class Diet {
             // Write a copy of the problem to a file.
 
             cplex.exportModel("Diet.java.lp");
+            cplex.setParam(IloCplex.Param.Preprocessing.Presolve, false);
+            cplex.setParam(IloCplex.Param.Threads, 2);
 
             // Solve model
 

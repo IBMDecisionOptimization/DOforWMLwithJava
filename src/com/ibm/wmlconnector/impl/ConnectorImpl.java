@@ -10,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
+import com.ibm.wmlconnector.Credentials;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,14 +21,19 @@ public abstract class ConnectorImpl {
 
     private static final int IAM_TIMEOUT = 3600;
 
-    String iam_url;
-    String apikey;
-    String bearerToken;
-    long bearerTokenTime;
+    protected Credentials credentials;
+    protected boolean isCOS;
+    protected String bearerToken;
+    protected long bearerTokenTime;
 
-    ConnectorImpl(String url, String apikey) {
-        this.iam_url = url;
-        this.apikey = apikey;
+    ConnectorImpl(Credentials credentials, boolean isCOS) {
+        this.credentials = credentials;
+    }
+    private String getApiKey() {
+        if (isCOS)
+            return credentials.COS_APIKEY;
+        else
+            return credentials.USE_V4_FINAL ? credentials.USER_APIKEY : credentials.WML_APIKEY;
     }
 
     public String getBearerToken() {
@@ -42,7 +48,7 @@ public abstract class ConnectorImpl {
         headers.put("Authorization", "Basic Yng6Yng=");
         headers.put("Content-Type", "application/x-www-form-urlencoded");
 
-        String res = doPost(iam_url, headers, "apikey="+apikey+"&grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&response_type=cloud_iam");
+        String res = doPost(credentials.IAM_URL, headers, "apikey="+getApiKey()+"&grant_type=urn%3Aibm%3Aparams%3Aoauth%3Agrant-type%3Aapikey&response_type=cloud_iam");
 
         try {
             JSONObject json = new JSONObject(res);

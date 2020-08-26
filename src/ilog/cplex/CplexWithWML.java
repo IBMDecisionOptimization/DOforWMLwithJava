@@ -35,13 +35,24 @@ public class CplexWithWML extends ExternalCplex {
     private static final Logger LOGGER = Logger.getLogger(CplexWithWML.class.getName());
     private static final long serialVersionUID = 1;
 
-    Credentials wml_credentials;
-    String wml_name;
-    public CplexWithWML(Credentials credentials) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, "CPLEXWithWML"); }
-    public CplexWithWML(Credentials credentials, String name) throws IloException { this(NamingStrategy.MAKE_NAMES, credentials, name); }
-    public CplexWithWML(NamingStrategy namingStrategy, Credentials credentials, String name) throws IloException {
+    protected Credentials wml_credentials;
+    protected WMLConnector.ModelType wml_type;
+    protected WMLConnector.TShirtSize wml_size;
+    protected String wml_name;
+    public CplexWithWML(Credentials credentials) throws IloException {
+        this(NamingStrategy.MAKE_NAMES, credentials, WMLConnector.ModelType.CPLEX_12_10, WMLConnector.TShirtSize.S, "CPLEXWithWML");
+    }
+    public CplexWithWML(Credentials credentials, WMLConnector.ModelType type,  WMLConnector.TShirtSize size) throws IloException {
+        this(NamingStrategy.MAKE_NAMES, credentials, type, size, "CPLEXWithWML");
+    }
+    public CplexWithWML(Credentials credentials, WMLConnector.ModelType type,  WMLConnector.TShirtSize size, String name) throws IloException {
+        this(NamingStrategy.MAKE_NAMES, credentials, type, size, name);
+    }
+    public CplexWithWML(NamingStrategy namingStrategy, Credentials credentials, WMLConnector.ModelType type,  WMLConnector.TShirtSize size, String name) throws IloException {
         super(namingStrategy);
         wml_credentials = credentials;
+        this.wml_type = type;
+        this.wml_size = size;
         wml_name = name;
     }
 
@@ -54,26 +65,29 @@ public class CplexWithWML extends ExternalCplex {
             final File solution = new File(model.getAbsolutePath() + ".sol");
             solution.deleteOnExit();
             exportModel(model.getAbsolutePath());
-            LOGGER.fine("Exported sav file.");
+            LOGGER.fine("Exported .sav.gz file.");
+            final File parameters = File.createTempFile("cpx", ".prm");
+            writeParam(parameters.getAbsolutePath());
+            LOGGER.fine("Exported .prm file to " + parameters.getAbsolutePath());
             try {
 
-                WMLConnector.ModelType type = WMLConnector.ModelType.CPLEX_12_9;
-                WMLConnector.TShirtSize size = WMLConnector.TShirtSize.S;
                 int nodes = 1;
                 WMLConnectorImpl wml = new WMLConnectorImpl(wml_credentials);
 
                 String deployment_id = wml.getDeploymentIdByName(wml_name);
                 if (deployment_id == null) {
-                    LOGGER.fine("Create Empty " + type + " Model");
-                    String model_id = wml.createNewModel(wml_name, type, null);
+                    LOGGER.info("Creating model and deployment");
+                    LOGGER.fine("Create Empty " + wml_type + " Model");
+                    String model_id = wml.createNewModel(wml_name, wml_type, null);
                     LOGGER.fine("model_id = " + model_id);
 
-                    deployment_id = wml.deployModel(wml_name, model_id, size, nodes);
+                    deployment_id = wml.deployModel(wml_name, model_id, wml_size, nodes);
                 }
                 LOGGER.fine("deployment_id = " + deployment_id);
 
                 JSONArray input_data = new JSONArray();
                 input_data.put(wml.createDataFromFile(wml_name+".sav.gz", model.getAbsolutePath()));
+                input_data.put(wml.createDataFromFile(wml_name+".prm", parameters.getAbsolutePath()));
                 WMLJob job = wml.createAndRunJob(deployment_id, input_data, null, null, null);
 
                 switch (job.getSolveStatus()) {

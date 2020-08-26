@@ -21,15 +21,12 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
 
 
-    Credentials credentials;
-    String wml_url;
-    String instance_id;
-
-    String api_url = null;
+    protected String wml_url;
+    protected String wml_instance_id;
+    protected String api_url = null;
 
     public WMLConnectorImpl(Credentials credentials) {
-        super(credentials.IAM_URL, credentials.USE_V4_FINAL ? credentials.USER_APIKEY : credentials.WML_APIKEY);
-        this.credentials = credentials;
+        super(credentials, false);
         this.wml_url = credentials.WML_URL;
         if (credentials.USE_V4_FINAL) {
             api_url = credentials.API_URL;
@@ -38,7 +35,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             LOGGER.info("WMLConnector using V4 BETA APIs");
         }
 
-        this.instance_id = credentials.WML_INSTANCE_ID;
+        this.wml_instance_id = credentials.WML_INSTANCE_ID;
         lookupBearerToken();
     }
 
@@ -64,7 +61,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 HashMap<String, String> headers = new HashMap<String, String>();
                 headers.put("Accept", "application/json");
                 headers.put("Authorization", "bearer " + bearerToken);
-                headers.put("ML-Instance-ID", instance_id);
+                headers.put("ML-Instance-ID", wml_instance_id);
                 headers.put("cache-control", "no-cache");
 
                 String url = "";
@@ -163,7 +160,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 HashMap<String, String> headers = new HashMap<String, String>();
                 headers.put("Accept", "application/json");
                 headers.put("Authorization", "bearer " + bearerToken);
-                headers.put("ML-Instance-ID", instance_id);
+                headers.put("ML-Instance-ID", wml_instance_id);
                 headers.put("cache-control", "no-cache");
 
                 doDelete(wml_url + "/v4/jobs/" + job_id + "?hard_delete=true", headers);
@@ -399,7 +396,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
             HashMap<String, String> headers = new HashMap<String, String>();
             headers.put("Accept", "application/json");
             headers.put("Authorization", "bearer " + bearerToken);
-            headers.put("ML-Instance-ID", instance_id);
+            headers.put("ML-Instance-ID", wml_instance_id);
             headers.put("cache-control", "no-cache");
             headers.put("Content-Type", "application/json");
 
@@ -500,7 +497,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         {
             HashMap<String, String> headers = new HashMap<String, String>();
             headers.put("Authorization", "bearer " + bearerToken);
-            headers.put("ML-Instance-ID", instance_id);
+            headers.put("ML-Instance-ID", wml_instance_id);
             headers.put("cache-control", "no-cache");
             headers.put("Content-Type", "application/json");
 
@@ -531,7 +528,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         {
             HashMap<String, String> headers = new HashMap<String, String>();
             headers.put("Authorization", "bearer " + bearerToken);
-            headers.put("ML-Instance-ID", instance_id);
+            headers.put("ML-Instance-ID", wml_instance_id);
             headers.put("cache-control", "no-cache");
 
 
@@ -557,7 +554,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Authorization", "bearer " + bearerToken);
-        headers.put("ML-Instance-ID", instance_id);
+        headers.put("ML-Instance-ID", wml_instance_id);
         headers.put("cache-control", "no-cache");
         headers.put("Content-Type", "application/json");
 
@@ -574,7 +571,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Authorization", "bearer " + bearerToken);
-        headers.put("ML-Instance-ID", instance_id);
+        headers.put("ML-Instance-ID", wml_instance_id);
         headers.put("cache-control", "no-cache");
         headers.put("Content-Type", "application/json");
 
@@ -616,7 +613,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Authorization", "bearer " + bearerToken);
-        headers.put("ML-Instance-ID", instance_id);
+        headers.put("ML-Instance-ID", wml_instance_id);
         headers.put("cache-control", "no-cache");
         headers.put("Content-Type", "application/json");
 
@@ -662,7 +659,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Accept", "application/json");
         headers.put("Authorization", "bearer " + bearerToken);
-        headers.put("ML-Instance-ID", instance_id);
+        headers.put("ML-Instance-ID", wml_instance_id);
         headers.put("cache-control", "no-cache");
         headers.put("Content-Type", "application/json");
 
@@ -713,7 +710,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Accept", "application/json");
         headers.put("Authorization", "bearer " + bearerToken);
-        headers.put("ML-Instance-ID", instance_id);
+        headers.put("ML-Instance-ID", wml_instance_id);
         headers.put("cache-control", "no-cache");
 
         String url = "";
