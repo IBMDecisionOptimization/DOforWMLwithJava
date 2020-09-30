@@ -6,5 +6,9 @@ src/MyDevFinalV4Credentials.java
 src/MyProdBetaV4Credentials.java
 src/resources/esso.cpo
 src/resources/mymodel.sav
-src/MyDevFinalV4Credentials.java
 src/MyQAFinalV4Credentials.java
+/src/private/
+src/MyProdFinalV4Credentials.java
+/src/PrivateTests.java
+src/MyProdFinalV4Credentials.java
+src/MyProdFinalV4Credentials.java

@@ -2,6 +2,7 @@ package com.ibm.wmlconnector.impl;
 
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
@@ -237,12 +238,26 @@ public abstract class ConnectorImpl {
         return encoded;
     }
 
-    public static String getFileContent(String inputFilename)  {
+    public static String getFileContent(String inputFilename) {
         String res = "";
+        /*
         try {
             List<String> lines = Files.readAllLines(Paths.get(inputFilename));
             for (Iterator<String> it = lines.iterator(); it.hasNext();)
                 res += it.next() + "\n";
+        } catch (IOException e) {
+            LOGGER.severe("Error getting text file" + e.getStackTrace());
+        }
+        */
+
+        try {
+            final BufferedReader in = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(inputFilename), StandardCharsets.UTF_8));
+            String line;
+            while ((line = in.readLine()) != null) {
+                res += line + "\n";
+            }
+            in.close();
         } catch (IOException e) {
             LOGGER.severe("Error getting text file" + e.getStackTrace());
         }

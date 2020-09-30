@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ibm.wmlconnector.Credentials;
@@ -17,8 +19,9 @@ public class Sample {
     private static final Logger LOGGER = Logger.getLogger(Sample.class.getName());
 
     //private static final Credentials CREDENTIALS = new MyDevFinalV4Credentials();
-    private static final Credentials CREDENTIALS = new MyQAFinalV4Credentials();
+    //private static final Credentials CREDENTIALS = new MyQAFinalV4Credentials();
     //private static final Credentials CREDENTIALS = new MyProdBetaV4Credentials();
+    private static final Credentials CREDENTIALS = new MyProdFinalV4Credentials();
 
 
     public String createAndDeployEmptyModel(WMLConnector wml, WMLConnector.ModelType type, WMLConnector.TShirtSize size, int nodes) {
@@ -76,7 +79,8 @@ public class Sample {
             if (useOutputDataReferences) {
                 getLogFromCOS(cos); // Don't log
             } else {
-                getLogFromJob(job); // Don't log
+                LOGGER.info("Log:" + getLogFromJob(job)); // Don't log
+                LOGGER.info("Solution:" + getSolutionFromJob(job));
             }
             long endTime   = System.nanoTime();
             long totalTime = endTime - startTime;
@@ -268,6 +272,19 @@ public class Sample {
         deleteDeployment(wml, deployment_id);
     }
 
+    public String createAndDeployScalableWarehouseOPLModel(WMLConnector wml) {
+
+        LOGGER.info("Create Warehouse OPL Model");
+
+        String model_id = wml.createNewModel("Warehouse", WMLConnector.ModelType.OPL_12_9,"src/resources/scalableWarehouse_yes.zip");
+        LOGGER.info("model_id = "+ model_id);
+
+        String deployment_id = wml.deployModel("warehouse-opl-test-wml-2", model_id, WMLConnector.TShirtSize.S,1);
+        LOGGER.info("deployment_id = "+ deployment_id);
+
+        return deployment_id;
+    }
+
     public String createAndDeployWarehouseOPLModel(WMLConnector wml) {
 
         LOGGER.info("Create Warehouse OPL Model");
@@ -280,6 +297,7 @@ public class Sample {
 
         return deployment_id;
     }
+
 
     public void fullWarehouseOPLFlow(boolean useOutputDataReferences) {
 
@@ -304,6 +322,20 @@ public class Sample {
         } else {
             LOGGER.info("Log:" + getLogFromJob(job));
         }
+
+        deleteDeployment(wml, deployment_id);
+    }
+
+    public void fullScalableWarehouseOPLFlow() {
+
+        LOGGER.info("Full Scalable Warehouse with OPL");
+
+        WMLConnectorImpl wml = new WMLConnectorImpl(CREDENTIALS);
+        String deployment_id = createAndDeployScalableWarehouseOPLModel(wml);
+
+
+        WMLJob job = wml.createAndRunJob(deployment_id, null, null, null, null);
+        LOGGER.info("Log:" + getLogFromJob(job));
 
         deleteDeployment(wml, deployment_id);
     }
@@ -584,9 +616,15 @@ public class Sample {
         LOGGER.info("Test v4 final.");
         WMLConnector wml = new WMLConnectorImpl(CREDENTIALS);
 
-
         //LOGGER.info("Instances: " + wml.getInstances());
+
         LOGGER.info("Spaces: " + wml.getDeploymentSpaces());
+
+        String space_id = wml.getDeploymentSpaceIdByName("test_v4_space");
+
+        LOGGER.info("space_id: " + space_id);
+
+        LOGGER.info("Assetfiles: " + wml.getAssetFiles(space_id));
 
         //LOGGER.info("Software Specifications: " + wml.getSoftwareSpecifications());
 
@@ -599,6 +637,13 @@ public class Sample {
     public static void main(String[] args) {
         Sample main = new Sample();
 
+        WMLConnectorImpl.LOGGER.setLevel(Level.FINER);
+        ConsoleHandler handler = new ConsoleHandler();
+        // PUBLISH this level
+        handler.setLevel(Level.FINER);
+        WMLConnectorImpl.LOGGER.addHandler(handler);
+
+
         //main.createSpace("test_space_2");
 
         //main.testV4final();
@@ -606,10 +651,11 @@ public class Sample {
         //main.testPerfs(1);
 
         // Python
-        //main.fullDietPythonFlow(false, 1);
+        main.fullDietPythonFlow(false, 1);
 
         // OPL
         //main.fullWarehouseOPLFlow(true);
+        //main.fullScalableWarehouseOPLFlow();
         //main.fullDietOPLWithDatFlow(false);
         //main.fullDietOPLWithCSVFlow(false);
 
@@ -626,9 +672,9 @@ public class Sample {
 
         //main.fullLPInlineFLow("bigone.mps", 1 );
         //main.fullLPInlineFLow("diet.lp", 1 );
-        main.parallelFullLPInlineFlow("diet.lp", 5, 20 );
-        //main.fullLPInlineFLow("acc-tight4.lp", 20 );
-        //main.parallelFullLPInlineFlow("acc-tight4.lp", 5, 100 );
+        //main.parallelFullLPInlineFlow("diet.lp", 5, 20 );
+        //main.fullLPInlineFLow("acc-tight4.lp", 1 );
+        //main.parallelFullLPInlineFlow("acc-tight4.lp", 3, 10 );
 
 //        main.fullInfeasibleLPFLow();
 

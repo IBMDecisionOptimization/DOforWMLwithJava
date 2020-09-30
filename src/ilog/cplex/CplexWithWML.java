@@ -63,6 +63,8 @@ public class CplexWithWML extends ExternalCplex {
     @Override
     protected Solution externalSolve(Set<String> knownVariables, Set<String> knownConstraints) throws IloException {
 
+        WMLConnectorImpl.RESULTS_FORMAT = "XML";
+
         try {
             // Create temporary files for model input and solution output.
             final File model = File.createTempFile("cpx", ".sav.gz");
@@ -74,6 +76,7 @@ public class CplexWithWML extends ExternalCplex {
             writeParam(parameters.getAbsolutePath());
             LOGGER.fine("Exported .prm file to " + parameters.getAbsolutePath());
             boolean hasStartSolution = false;
+            hasStartSolution = false;
             try {
 
                 if (deployment_id == null)

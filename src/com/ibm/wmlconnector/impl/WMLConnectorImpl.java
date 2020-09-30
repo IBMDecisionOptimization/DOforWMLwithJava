@@ -8,6 +8,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
 import java.util.*;
@@ -16,8 +21,9 @@ import java.util.*;
 
 public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
-    public static String RESULTS_FORMAT = "XML";
-    private static final Logger LOGGER = Logger.getLogger(WMLConnectorImpl.class.getName());
+    //public static String RESULTS_FORMAT = "XML";
+    public static String RESULTS_FORMAT = "JSON";
+    public static final Logger LOGGER = Logger.getLogger(WMLConnectorImpl.class.getName());
 
 
 
@@ -28,8 +34,8 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
     public WMLConnectorImpl(Credentials credentials) {
         super(credentials, false);
         this.wml_url = credentials.WML_URL;
+        this.api_url = credentials.API_URL;
         if (credentials.USE_V4_FINAL) {
-            api_url = credentials.API_URL;
             LOGGER.info("WMLConnector using V4 final APIs");
         } else {
             LOGGER.info("WMLConnector using V4 BETA APIs");
@@ -178,7 +184,10 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 if (o.getString("id").equals("log.txt")) {
                     byte[] encoded = new byte[0];
                     try {
-                        encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
+                        if (credentials.USE_V4_FINAL)
+                            encoded = o.getString("content").getBytes("UTF-8");
+                        else
+                            encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
                         byte[] decoded = Base64.getDecoder().decode(encoded);
                         String log = new String(decoded, "UTF-8");
                         return log;
@@ -200,7 +209,10 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 if (o.getString("id").equals("solution.json")) {
                     byte[] encoded = new byte[0];
                     try {
-                        encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
+                        if (credentials.USE_V4_FINAL)
+                            encoded = o.getString("content").getBytes("UTF-8");
+                        else
+                            encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
                         byte[] decoded = Base64.getDecoder().decode(encoded);
                         solution = new String(decoded, "UTF-8");
                         break;
@@ -211,7 +223,10 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                 } else if (o.getString("id").equals("solution.xml")) {
                     byte[] encoded = new byte[0];
                     try {
-                        encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
+                        if (credentials.USE_V4_FINAL)
+                            encoded = o.getString("content").getBytes("UTF-8");
+                        else
+                            encoded = o.getJSONArray("values").getJSONArray(0).getString(0).getBytes("UTF-8");
                         byte[] decoded = Base64.getDecoder().decode(encoded);
                         solution = new String(decoded, "UTF-8");
                         break;
@@ -316,13 +331,17 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         JSONObject data = new JSONObject();
         data.put("id", id);
 
-        JSONArray fields = new JSONArray();
-        fields.put("___TEXT___");
-        data.put("fields", fields);
+        if (credentials.USE_V4_FINAL)
+            data.put("content", new String(encoded));
+        else {
+            JSONArray fields = new JSONArray();
+            fields.put("___TEXT___");
+            data.put("fields", fields);
 
-        JSONArray values = new JSONArray();
-        values.put(new JSONArray().put(new String(encoded)));
-        data.put("values", values);
+            JSONArray values = new JSONArray();
+            values.put(new JSONArray().put(new String(encoded)));
+            data.put("values", values);
+        }
 
         return data;
     }
@@ -336,13 +355,17 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         JSONObject data = new JSONObject();
         data.put("id", id);
 
-        JSONArray fields = new JSONArray();
-        fields.put("___TEXT___");
-        data.put("fields", fields);
+        if (credentials.USE_V4_FINAL)
+            data.put("content", new String(encoded));
+        else {
+            JSONArray fields = new JSONArray();
+            fields.put("___TEXT___");
+            data.put("fields", fields);
 
-        JSONArray values = new JSONArray();
-        values.put(new JSONArray().put(new String(encoded)));
-        data.put("values", values);
+            JSONArray values = new JSONArray();
+            values.put(new JSONArray().put(new String(encoded)));
+            data.put("values", values);
+        }
 
         return data;
     }
@@ -474,7 +497,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
                     if (job.hasSolveStatus())
                         LOGGER.fine("Solve Status : " + job.getSolveStatus());
                     if (job.hasLatestEngineActivity())
-                        LOGGER.fine("Latest Engine Activity : " + job.getLatestEngineActivity());
+                        LOGGER.finer("Latest Engine Activity : " + job.getLatestEngineActivity());
 
                     HashMap<String, Object> kpis = job.getKPIs();
 
@@ -482,7 +505,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
 
                     while (keys.hasNext()) {
                         String kpi = keys.next();
-                        LOGGER.fine("KPI: " + kpi + " = " + kpis.get(kpi));
+                        LOGGER.finer("KPI: " + kpi + " = " + kpis.get(kpi));
                     }
                 }
             } catch (JSONException e) {
@@ -725,6 +748,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         return new JSONObject(res);
     }
 
+    @Override
     public JSONObject getDeployments() {
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Accept", "application/json");
@@ -743,6 +767,7 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         return new JSONObject(res);
     }
 
+    @Override
     public String getDeploymentIdByName(String deployment_name) {
 
         JSONObject json = getDeployments();
@@ -755,5 +780,133 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         }
         return null;
 
+    }
+
+    @Override
+    public String getDeploymentSpaceIdByName(String spaceName) {
+        JSONObject json = getDeploymentSpaces();
+        JSONArray resources = json.getJSONArray("resources");
+        int len = resources.length();
+        for (int i=0; i<len; i++) {
+            JSONObject entity = resources.getJSONObject(i).getJSONObject("entity");
+            JSONObject metadata = resources.getJSONObject(i).getJSONObject("metadata");
+            if (entity.getString("name").equals(spaceName))
+                return metadata.getString("id");
+        }
+        return null;
+    }
+
+    public String getCatalogIdBySpaceId(String space_id) {
+        HashMap<String, String> headers = new HashMap<String, String>();
+        //headers.put("Accept", "application/json");
+        headers.put("Authorization", "Bearer " + bearerToken);
+        //headers.put("ML-Instance-ID", instance_id);
+        //headers.put("cache-control", "no-cache");
+
+
+        String res = doGet(api_url + "/v2/catalogs/?space_id="+space_id, headers);
+        JSONArray catalogs = (new JSONObject(res)).getJSONArray("catalogs");
+        for (int i=0; i <catalogs.length(); i++) {
+            JSONObject catalog = catalogs.getJSONObject(i);
+            if (catalog.getJSONObject("entity").has("space_id") &&
+                    catalog.getJSONObject("entity").getString("space_id").equals(space_id))
+                return catalog.getJSONObject("metadata").getString("guid");
+        }
+        return null;
+    }
+
+    public JSONObject getStorageBySpaceId(String space_id) {
+        HashMap<String, String> headers = new HashMap<String, String>();
+        //headers.put("Accept", "application/json");
+        headers.put("Authorization", "Bearer " + bearerToken);
+        //headers.put("ML-Instance-ID", instance_id);
+        //headers.put("cache-control", "no-cache");
+
+
+        String res = doGet(api_url + "/v2/spaces/?space_id="+space_id, headers);
+        JSONArray spaces = (new JSONObject(res)).getJSONArray("resources");
+        for (int i=0; i <spaces.length(); i++) {
+            JSONObject space = spaces.getJSONObject(i);
+            if (space.getJSONObject("metadata").getString("id").equals(space_id))
+                return space.getJSONObject("entity").getJSONObject("storage");
+        }
+        return null;
+    }
+
+    @Override
+    public JSONObject getAssetFiles(String space_id) {
+        HashMap<String, String> headers = new HashMap<String, String>();
+        //headers.put("Accept", "application/json");
+        headers.put("Authorization", "Bearer " + bearerToken);
+        //headers.put("ML-Instance-ID", instance_id);
+        //headers.put("cache-control", "no-cache");
+
+
+        //String catalog_id = getCatalogIdBySpaceId(space_id);
+        JSONObject storage = getStorageBySpaceId(space_id);
+
+        String cos_url = storage.getJSONObject("properties").getString("endpoint_url");
+        String cos_bucket = storage.getJSONObject("properties").getString("bucket_name");
+
+        String res = doGet(cos_url + "/" + cos_bucket, headers);
+
+        JSONObject files = new JSONObject();
+        try {
+            // pass the file name.. all relative entity
+            // references will be resolved against this
+            // as base URI.
+            XMLStreamReader xmlr = XMLInputFactory.newInstance().createXMLStreamReader(new ByteArrayInputStream(res.getBytes()));
+
+            String element;
+            String text;
+            String[] attrs;
+            boolean isKey = false;
+            while(xmlr.hasNext()) {
+                switch (xmlr.next()) {
+                    case XMLStreamConstants.START_DOCUMENT: /* nothing */
+                        break;
+                    case XMLStreamConstants.START_ELEMENT:
+                        element = xmlr.getLocalName();
+                        if (element.equals("Key"))
+                            isKey = true;
+                        break;
+                    case XMLStreamConstants.END_ELEMENT:
+                        element = xmlr.getLocalName();
+                        if (element.equals("Key"))
+                            isKey = false;
+                        break;
+                    case XMLStreamConstants.END_DOCUMENT: /* nothing */
+                        break;
+                    case XMLStreamConstants.CHARACTERS:
+                        if (isKey) {
+                            int start = xmlr.getTextStart();
+                            int length = xmlr.getTextLength();
+                            String key = new String(xmlr.getTextCharacters(),
+                                    start,
+                                    length);
+
+                            //String asset_id= key.split("/")[1];
+                            //String name = key.split("/")[2];
+
+                            if (key.endsWith(".csv")) {
+                                String res2 = doGet(cos_url + "/" + cos_bucket + "/" + key, headers);
+                                files.put(key, res2);
+                            }
+                        }
+                        break;
+                }
+            }
+        } catch (XMLStreamException e) {
+            e.printStackTrace();
+        }
+
+        //String res = doGet(api_url + "/v2/spaces/?space_id="+space_id, headers);
+
+        //String res = doGet(api_url + "/v2/asset_imports/?space_id="+space_id, headers);
+        //String res = doGet(api_url + "/v2/data_assets/?space_id="+space_id, headers);
+        //String res = doGet( api_url + "/v2/catalogs/"+catalog_id, headers);
+        //String res = doGet(api_url + "/v2/asset_files?catalog_id=3992bcee-362e-4806-964d-3527ad5218f2", headers);
+
+        return files;
     }
 }

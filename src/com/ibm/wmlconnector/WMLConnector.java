@@ -74,6 +74,8 @@ public interface WMLConnector extends Connector {
     public JSONObject getSoftwareSpecifications();
     public String createDeploymentSpace(String name);
     public JSONObject getDeploymentSpaces();
+    public String getDeploymentSpaceIdByName(String spaceName);
+    public JSONObject getAssetFiles(String space_id);
 
     public String createNewModel(String modelName, ModelType type, String modelAssetFilePath, Runtime runtime);
     public String createNewModel(String modelName, ModelType type, String modelAssetFilePath);
