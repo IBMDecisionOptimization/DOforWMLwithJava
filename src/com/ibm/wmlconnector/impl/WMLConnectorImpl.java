@@ -775,11 +775,14 @@ public class WMLConnectorImpl extends ConnectorImpl implements WMLConnector {
         int len = resources.length();
         for (int i=0; i<len; i++) {
             JSONObject metadata = resources.getJSONObject(i).getJSONObject("metadata");
-            if (metadata.getString("name").equals(deployment_name))
+            if (metadata.getString("name").equals(deployment_name)) {
+                if (credentials.USE_V4_FINAL)
+                    return metadata.getString("id");
+                else
                     return metadata.getString("guid");
+            }
         }
         return null;
-
     }
 
     @Override
