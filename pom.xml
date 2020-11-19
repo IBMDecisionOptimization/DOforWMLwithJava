@@ -1,0 +1,127 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>com.ibm.ml.ilog</groupId>
+  <artifactId>do-wmlconnector</artifactId>
+  <version>1.0.0</version>
+    <properties>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <com.typesafe.version>1.4.0</com.typesafe.version>
+        <log4j.version>2.13.3</log4j.version>
+        <cplex_version>12.10.0.0</cplex_version>
+        <org.apache.version>4.3.1</org.apache.version>
+    </properties>
+
+  <build>
+    <sourceDirectory>src/main</sourceDirectory>
+      <testSourceDirectory>src/test</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>src</directory>
+        <includes>
+        	<include>main/resources/*</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.2</version>
+				<executions>
+					<!-- Unpack everything needed to run the tests -->
+					<execution>
+						<!-- copy dependencies so that we can create a zip with all runtime -->
+			            <id>copy-dependencies</id>
+			            <phase>package</phase>
+			            <goals>
+			              <goal>copy-dependencies</goal>
+			            </goals>
+			            <configuration>
+			      			<excludeGroupIds>com.ibm.ilog.optim</excludeGroupIds>
+			      			<includeScope>compile</includeScope>
+			            </configuration>
+			          </execution>
+				</executions>
+			</plugin>	
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.1.2</version>
+				<configuration>
+					<excludes>
+						<exclude>**/log4j.properties</exclude>
+						<exclude>test/**</exclude>
+					</excludes>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+					</archive>
+				</configuration>
+			</plugin>
+    </plugins>
+  </build>
+
+
+	<dependencies>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>${org.apache.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>${com.typesafe.version}</version>
+        </dependency>
+        <dependency>
+            <!-- to install cplex-jar on your machine:
+        	mvn install:install-file "-Dfile=%CPLEX_STUDIO_DIR1210%\cplex\lib\cplex.jar" -DgroupId=com.ibm.ilog.optim -DartifactId=cplex-jar -Dversion=12.10.0.0 -Dpackaging=jar
+        	 -->
+			<groupId>com.ibm.ilog.optim</groupId>
+			<artifactId>cplex-jar</artifactId>
+			<version>${cplex_version}</version>
+		</dependency>
+        <dependency>
+        	<!-- to install cpo-jar on your machine:
+        	mvn install:install-file "-Dfile=%CPLEX_STUDIO_DIR1210%\cpoptimizer\lib\ILOG.CP.jar" -DgroupId=com.ibm.ilog.optim -DartifactId=cpo-jar -Dversion=12.10.0.0 -Dpackaging=jar
+        	 -->
+			<groupId>com.ibm.ilog.optim</groupId>
+			<artifactId>cpo-jar</artifactId>
+			<version>${cplex_version}</version>
+		</dependency>  
+		<!-- https://mvnrepository.com/artifact/junit/junit -->
+		<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <version>4.12</version>
+		    <scope>test</scope>
+		</dependency>
+		<!-- JSON4J -->
+		<dependency>
+		    <groupId>com.ibm.json</groupId>
+		    <artifactId>json4j</artifactId>
+		    <version>1.1.0.0</version>
+		    <scope>system</scope>
+		    <systemPath>${project.basedir}/dep-jar/json4j-1.1.0.0.jar</systemPath>
+		</dependency>
+	</dependencies>
+</project>
