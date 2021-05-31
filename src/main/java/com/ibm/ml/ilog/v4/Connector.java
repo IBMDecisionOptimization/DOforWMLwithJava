@@ -62,7 +62,7 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
 
     private final String COMPLETED = "completed";
     private final String FAILED = "failed";
-    private final String[] status = {COMPLETED, "failed", "canceled", "deleted"};
+    private final String[] status = {COMPLETED, FAILED, "canceled", "deleted"};
     private final Set<String> completedStatus = new java.util.HashSet<>(Arrays.asList(status));
 
     private final int statusRefreshRate = config.getInt("wmlconnector.v4.status_rate");

@@ -9,7 +9,7 @@ WML offers a Python and REST API to develop and execute DO models.
 The code included in this repository provides two ways to use WML to solve DO models.
 1. the `ilog.cplex.*` and `ilog.cp.*` packages include classes to easily modify existing Java code so that the optimization will execute on WML.
 The Java code should include both the modeling and execution of the DO model, and **after just a single line change, execution will occur on WML**.
-2. the `com.ibm.ml.ilog*` package includes lower level classes to create **models** and **deployments** in WML, and then create and poll **jobs**. 
+2. the `com.ibm.ml.ilog*` package includes lower level classes to create **models** and **deployments** in WML, and then create and poll **jobs**.
 With these classes, you can have detailed control on the execution and integration of DO in WML.
 
 * The 1st packages are useful if you use CPLEX/CPO engines from Java and want to delegate the solve resources to Cloud.
@@ -34,7 +34,7 @@ You will need a CPLEX installation in order to compile and run this code.
 
 You don't need an official commercial version of CPLEX to run this as the optimization will happen on WML.
 
-The compilation and modeling can be done with the **Community Edition** of CPLEX that is freely available. 
+The compilation and modeling can be done with the **Community Edition** of CPLEX that is freely available.
 
 ### WML instance and credentials
 In order to run on WML, you will need an instance with some credentials.
@@ -50,13 +50,13 @@ But you should be able to adapt to any Java environment that you prefer.
 
 As always the important things to check are:
  * the dependencies on the Concert and CPLEX Java packages,
- * and the right setting of the path to the CPLEX native library. 
- 
+ * and the right setting of the path to the CPLEX native library.
+
 * If you use a released version of this library, add it as a Java dependancy
 * If you use the project sources, then
    * add `src/main/java` as `Source Root`
    * add `src/main/resources` as `Resources Root`
-   
+
 In any case, to run the examples, you need to:
 * add `src/test/java` as `Test Source Root`
 * add `src/test/resources` as `Test Resources Root`
@@ -86,7 +86,7 @@ In order to solve on WML, you just need to use the new class and provide some WM
 IloCplex cplex = new WmlCplex(credentials, runtime, size, numNodes);
 ```
 where:
-* **Credentials** credentials: contains the list of your credentials. You can easily create one from a config file. 
+* **Credentials** credentials: contains the list of your credentials. You can easily create one from a config file.
 See [`wml.cpd.conf`](src/test/resources/wml.cpd.conf) or [`wml.public.conf`](src/test/resources/wml.public.conf) for example.
 (Cloud Pak for Data public and private have small credentials inputs).
 you can specify your WML credentials, either by hard-coding them in those files or by overloading the environment variables.
@@ -96,11 +96,11 @@ you can specify your WML credentials, either by hard-coding them in those files 
 
 The new CPLEX class will behave exactly like the original one (see [supported API and limitations](#Supported-CPLEX-and-CPO-API-and-limitations)), you can call the solve, get the variables values, an so on.
 
-The same applies to the IloCP class where 
+The same applies to the IloCP class where
 ```
 IloCP cp = new IloCP();
 ```
-is replaced with 
+is replaced with
 ```
 IloCP cp = new WmlCP(credentials, runtime, size, numNodes);
 ```
@@ -119,12 +119,12 @@ will create:
    * For a 12.10 version of DO
    * with a medium size
    * and 1 node
-   
+
 ### Supported CPLEX and CPO API and limitations
 
 With both CPLEX and CPO, you can build any type of model as long as you don't use any callbacks, set parameters and delegate the solve to Cloud Pak for Data.
 
-Both engines have unsupported methods. 
+Both engines have unsupported methods.
 When such an unsupported method is called, an exception will be raised in most cases at execution time.
 
 #### CPLEX Supported/Unsupported API
@@ -137,9 +137,9 @@ In few words, most CPLEX methods are supported except methods related to:
 * Asynchronous api
 * Conflicts
 * Tuning methods
- 
+
 See [`Details about CPLEX`](CPLEX.md) for a detailed list of methods.
- 
+
 #### CP Supported/Unsupported API
 
 All model building methods are supported.
@@ -150,7 +150,7 @@ You can set parameters.
 You can query values for variables, interval variables, and get objective(s) value(s).
 
 
-* All methods related to callbacks (non-batch solving) are not supported. 
+* All methods related to callbacks (non-batch solving) are not supported.
 * A number of additional methods like failure explanation or search information are not supported.
 * Others methods are not supported but a work-around can be used (for instance: `getValue(IloIntExpr expr)` can be replaced with: `getIntValue(IloIntVar idvar)` after adding an equality constraint binding the integer decision variable to the expression value).
 
@@ -165,7 +165,7 @@ This package contains the classes you need to use to pilot a fine grained handli
 They might not be useful if you only use CPLEX/CPO jobs, but are relevant if you want to use Python-based jobs, or OPL-based jobs.
 
 * If you are interested in the WML api, see the [`BrowseWML.java`](src/test/java/com/ibm/ml/BrowseWML.java) example.
-* If you are interested in delegating a Python/OPL based scenario, see the [`WMLSamples.java`](src/test/java/com/ibm/ml/WMLSamples.java) example. 
+* If you are interested in delegating a Python/OPL based scenario, see the [`WMLSamples.java`](src/test/java/com/ibm/ml/WMLSamples.java) example.
 
 Library execution can be controlled by the [`src/main/resources/resources.conf`](src/main/resources/resources.conf)file, where you can specify with hard coded values or environment variables various parameters such as:
 * the default time limit (If no time limit is provided by the engines, then by default, the WML job will be terminated after this time limit to avoid wasting resources).
@@ -197,11 +197,33 @@ Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resol
 ```
 * or by providing the keys/values yourself.
 
+## How to run the examples.
+
+The examples are using configuration files and environment variables to handle the various endpoints/credentials you need to provide to make them run.
+you need to either hardcode them in the config files or define the env vars.
+
+Here is a list of the variables you need to setup to run them.
+To run the CP/CPLEX examples, you only need to provide the variables related to Watson Machine Learning.
+To run the WML workflow examples, you will need to provide the variables related to Cloud Object Storage also
+
+**Watson Machine Learning related**
+   * WML_HOST: defines the host, for example  "https://us-south.ml.cloud.ibm.com".
+   * WML_API_KEY: your api key.
+   * WML_SPACE_ID: defines the space that will used to store/handle the various artefacts (model, deployment, ...).
+
+
+**Cloud Object Storage related**
+   * COS_ENDPOINT: defines the COS endpoint, for example "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints".
+   * COS_BUCKET: your bucket name.
+   * COS_ACCESS_KEY: access key.
+   * COS_SECRET_KEY: secret access key.
+
+
 ## Note about the library and WML interactions.
 
 Running a DO job in WML needs a WML Deployment job.
 The creation of a job takes approximately 20 seconds, so to avoid this delay, the library reuses deployments when a new job is triggered.
-Deployments can be created if not present: they will be created/reused with a name that is the combination of 
+Deployments can be created if not present: they will be created/reused with a name that is the combination of
    * the engine
    * the runtime
    * the size
