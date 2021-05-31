@@ -43,7 +43,8 @@ public interface Connector extends TokenHandler {
 
     enum Runtime {
         DO_12_9("do_12.9"),
-        DO_12_10("do_12.10");
+        DO_12_10("do_12.10"),
+        DO_20_1("do_20.1");
 
         private final String shortName;
 
@@ -69,7 +70,11 @@ public interface Connector extends TokenHandler {
         CPLEX_12_10("do-cplex_12.10"),
         CPO_12_10("do-cpo_12.10"),
         OPL_12_10("do-opl_12.10"),
-        DOCPLEX_12_10("do-docplex_12.10");
+        DOCPLEX_12_10("do-docplex_12.10"),
+        CPLEX_20_1("do-cplex_20.1"),
+        CPO_20_1("do-cpo_20.1"),
+        OPL_20_1("do-opl_20.1"),
+        DOCPLEX_20_1("do-docplex_20.1");
 
         private final String shortName;
 
@@ -93,6 +98,8 @@ public interface Connector extends TokenHandler {
                 return ModelType.CPLEX_12_9;
             case DO_12_10:
                 return ModelType.CPLEX_12_10;
+            case DO_20_1:
+                return ModelType.CPLEX_20_1;
         }
         throw new IloException("Runtime " + r + " is not supported currently");
     }
@@ -103,6 +110,8 @@ public interface Connector extends TokenHandler {
                 return ModelType.CPO_12_9;
             case DO_12_10:
                 return ModelType.CPO_12_10;
+            case DO_20_1:
+                return ModelType.CPO_20_1;
         }
         throw new IloException("Runtime " + r + " is not supported currently");
     }

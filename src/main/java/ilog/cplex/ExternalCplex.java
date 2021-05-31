@@ -45,7 +45,7 @@ abstract class ExternalCplex extends NotSupportedCplex {
 
         if (!oldNames.containsKey(v)) {
             oldNames.put(v, name); // even if name == null!
-            name = String.format("v%x", oldNames.size());
+            name = String.format("vv%x", oldNames.size());
             v.setName(name);
             name2var.put(name, v);
         }
@@ -55,7 +55,7 @@ abstract class ExternalCplex extends NotSupportedCplex {
         String name = v.getName();
         if (!oldNames.containsKey(v)) {
             oldNames.put(v, name); // even if name == null!
-            name = String.format("c%x", oldNames.size());
+            name = String.format("cc%x", oldNames.size());
             v.setName(name);
             name2rng.put(name, v);
         }
@@ -251,7 +251,11 @@ abstract class ExternalCplex extends NotSupportedCplex {
                                         state = ParserState.VARIABLES;
                                     } else if (element.equals("linearConstraints")) {
                                         state = ParserState.LINEAR_CONSTRAINTS;
-                                    } else {
+                                    }
+                                    else if (element.equals("indicatorConstraints")) {
+                                        state = ParserState.LINEAR_CONSTRAINTS;
+                                    }
+                                    else {
                                         state = ParserState.UNKNOWN;
                                         unknownStack.add(element);
                                     }
@@ -275,8 +279,6 @@ abstract class ExternalCplex extends NotSupportedCplex {
                                     }
                                     break;
                                 case LINEAR_CONSTRAINTS:
-                                    if (!element.equals("constraint"))
-                                        throw new IOException(MALFORMED_XML);
                                     attrs = getAttributes(reader, "name", "dual", "slack");
                                     if (attrs[0] != null) {
                                         if (attrs[1] == null) {
@@ -332,7 +334,11 @@ abstract class ExternalCplex extends NotSupportedCplex {
                                         throw new IOException(MALFORMED_XML);
                                     break;
                                 case LINEAR_CONSTRAINTS:
-                                    if (element.equals("constraint")) { /* nothing */ } else if (element.equals("linearConstraints")) {
+                                    if (element.equals("constraint")) { /* nothing */ }
+                                    else if (element.equals("linearConstraints")) {
+                                        state = ParserState.SOLUTION;
+                                    }
+                                    else if (element.equals("indicatorConstraints")) {
                                         state = ParserState.SOLUTION;
                                     } else
                                         throw new IOException(MALFORMED_XML);
