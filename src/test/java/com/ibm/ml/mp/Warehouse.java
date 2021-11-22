@@ -5,6 +5,7 @@ import com.ibm.ml.ilog.Connector;
 import com.typesafe.config.ConfigFactory;
 import ilog.concert.*;
 import ilog.cplex.*;
+import ilog.cplex.WmlCplex;
 
 public class Warehouse {
    static class SemiContGoal extends IloCplex.Goal {
