@@ -7,7 +7,7 @@
     <properties>
 	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <com.typesafe.version>1.4.0</com.typesafe.version>
-        <log4j.version>2.13.3</log4j.version>
+        <log4j.version>2.15.0</log4j.version>
         <cplex_version>12.10.0.0</cplex_version>
         <org.apache.version>4.3.1</org.apache.version>
     </properties>
