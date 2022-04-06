@@ -39,6 +39,7 @@ abstract class NotSupportedCP extends IloCP {
         super();
     }
 
+
     /************************************************************************
      * Functions for managing: Explanations
      ************************************************************************/

@@ -44,7 +44,8 @@ public interface Connector extends TokenHandler {
     enum Runtime {
         DO_12_9("do_12.9"),
         DO_12_10("do_12.10"),
-        DO_20_1("do_20.1");
+        DO_20_1("do_20.1"),
+        DO_22_1("do_22.1");
 
         private final String shortName;
 
@@ -74,7 +75,11 @@ public interface Connector extends TokenHandler {
         CPLEX_20_1("do-cplex_20.1"),
         CPO_20_1("do-cpo_20.1"),
         OPL_20_1("do-opl_20.1"),
-        DOCPLEX_20_1("do-docplex_20.1");
+        DOCPLEX_20_1("do-docplex_20.1"),
+        CPLEX_22_1("do-cplex_22.1"),
+        CPO_22_1("do-cpo_22.1"),
+        OPL_22_1("do-opl_22.1"),
+        DOCPLEX_22_1("do-docplex_22.1");
 
         private final String shortName;
 
@@ -100,6 +105,8 @@ public interface Connector extends TokenHandler {
                 return ModelType.CPLEX_12_10;
             case DO_20_1:
                 return ModelType.CPLEX_20_1;
+            case DO_22_1:
+                return ModelType.CPLEX_22_1;
         }
         throw new IloException("Runtime " + r + " is not supported currently");
     }
@@ -112,6 +119,8 @@ public interface Connector extends TokenHandler {
                 return ModelType.CPO_12_10;
             case DO_20_1:
                 return ModelType.CPO_20_1;
+            case DO_22_1:
+                return ModelType.CPO_22_1;
         }
         throw new IloException("Runtime " + r + " is not supported currently");
     }
@@ -119,6 +128,7 @@ public interface Connector extends TokenHandler {
     enum TShirtSize {
         S("S"),
         M("M"),
+        L("L"),
         XL("XL");
 
         private final String name;

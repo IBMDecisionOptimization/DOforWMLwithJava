@@ -269,7 +269,7 @@ public class Diet {
         //IloCplex cplex = new IloCplex();
         IloCplex cplex = new WmlCplex(
                 Credentials.getCredentials("wml.public.conf"),
-                Connector.Runtime.DO_12_10,
+                Connector.Runtime.DO_20_1,
                 Connector.TShirtSize.M,
                 1);
         try {

@@ -22,7 +22,7 @@ public class Transport {
      //try (IloCplex cplex = new IloCplex()) {
       try (IloCplex cplex = new WmlCplex(
               Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resolve()),
-              Connector.Runtime.DO_12_10,
+              Connector.Runtime.DO_20_1,
               Connector.TShirtSize.M,
               1)) {
         final int nbDemand = 4;

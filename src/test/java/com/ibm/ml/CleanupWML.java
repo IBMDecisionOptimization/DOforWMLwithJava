@@ -15,8 +15,8 @@ public class CleanupWML {
                     Credentials.getCredentials("wml.public.conf")
             };
             Connector.Runtime[] runtimes = new Connector.Runtime[]{
-                    Connector.Runtime.DO_12_10,
-                    Connector.Runtime.DO_12_9
+                    Connector.Runtime.DO_20_1,
+                    Connector.Runtime.DO_12_10
             };
             Connector.TShirtSize[] sizes = new Connector.TShirtSize[]{
                     Connector.TShirtSize.M

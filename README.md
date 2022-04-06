@@ -109,14 +109,14 @@ For example,
 ```
 IloCplex cplex = new WmlCplex(
               Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resolve()),
-              Connector.Runtime.DO_12_10,
+              Connector.Runtime.DO_20_1,
               Connector.TShirtSize.M,
               1)
 ```
 will create:
    * a CPLEX engine for WML
    * getting the credentials from the resource file `wml.public.conf` which will be stored in the test resources
-   * For a 12.10 version of DO
+   * For a 20.1 version of DO
    * with a medium size
    * and 1 node
 

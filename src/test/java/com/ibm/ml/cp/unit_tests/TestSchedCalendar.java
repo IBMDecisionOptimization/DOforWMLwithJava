@@ -134,7 +134,7 @@ public class TestSchedCalendar extends TestCase {
 		try {
 			cp = new WmlCP(
                     Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resolve()),
-                    Connector.Runtime.DO_12_10,
+                    Connector.Runtime.DO_20_1,
                     Connector.TShirtSize.M,
                     1);
 

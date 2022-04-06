@@ -37,7 +37,7 @@ public class Truckfleet {
     public static void main(String[] args) {
         try {
             IloCP cp = new WmlCP(Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resolve()),
-    		        Connector.Runtime.DO_12_10, Connector.TShirtSize.M, 1);
+    		        Connector.Runtime.DO_20_1, Connector.TShirtSize.M, 1);
             int nbTruckConfigs = 7; // Number of possible configurations for the truck 
             int nbOrders       = 21;
             int nbCustomers    = 3; 

@@ -33,7 +33,7 @@ public class MixBlend {
       //try (IloCplex cplex = new IloCplex()) {
       try (IloCplex cplex = new WmlCplex(
               Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resolve()),
-              Connector.Runtime.DO_12_10,
+              Connector.Runtime.DO_20_1,
               Connector.TShirtSize.M,
               1)) {
          IloNumVar[] m = cplex.numVarArray(_nbElements, 0.0, Double.MAX_VALUE);
