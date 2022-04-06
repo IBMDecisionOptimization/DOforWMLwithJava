@@ -138,7 +138,7 @@ public class CplexServer {
                }
                IloCplex cplex = new WmlCplex(
                        Credentials.getCredentials("wml.cpd.conf"),
-                       Connector.Runtime.DO_12_10,
+                       Connector.Runtime.DO_20_1,
                        Connector.TShirtSize.M,
                        1);
                cplex.setModel(data.model);

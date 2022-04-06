@@ -38,7 +38,7 @@ public class TestColor extends TestCase {
 			// IloCP cp = new IloCP();
 			cp = new WmlCP(
 					Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resolve()),
-					Connector.Runtime.DO_12_10, Connector.TShirtSize.M, 1);
+					Connector.Runtime.DO_20_1, Connector.TShirtSize.M, 1);
 			Belgium = cp.intVar(0, 3);
 			Denmark = cp.intVar(0, 3);
 			France = cp.intVar(0, 3);

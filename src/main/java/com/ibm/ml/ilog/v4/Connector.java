@@ -74,7 +74,7 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
 
 
     public Connector(Credentials creds) throws IloException {
-        this(creds, com.ibm.ml.ilog.Connector.Runtime.DO_12_10, com.ibm.ml.ilog.Connector.TShirtSize.M, 1, null);
+        this(creds, com.ibm.ml.ilog.Connector.Runtime.DO_20_1, com.ibm.ml.ilog.Connector.TShirtSize.M, 1, null);
     }
 
     public Connector(Credentials creds, com.ibm.ml.ilog.Connector.Runtime runtime, com.ibm.ml.ilog.Connector.TShirtSize size, int nodes) throws IloException {

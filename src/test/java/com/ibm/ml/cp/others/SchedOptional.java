@@ -145,7 +145,7 @@ public class SchedOptional {
 		try {
 			cp = new WmlCP(
 			        Credentials.getCredentials(ConfigFactory.parseResources("wml.public.conf").resolve()),
-			        Connector.Runtime.DO_12_10, Connector.TShirtSize.M, 1);
+			        Connector.Runtime.DO_20_1, Connector.TShirtSize.M, 1);
 
 			int nbHouses = 5;
 			int deadline = 318;

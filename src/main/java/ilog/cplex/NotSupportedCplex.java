@@ -30,17 +30,17 @@ abstract class NotSupportedCplex extends IloCplex {
   @Override
   public double getObjValue(int var1) throws IloException {
     logger.error(notSupportedError + " getObjValue");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
   @Override
   public double getBestObjValue() throws IloException {
     logger.error(notSupportedError + " getBestObjValue");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
   @Override
   public double getMIPRelativeGap() throws IloException {
     logger.error(notSupportedError + " getMIPRelativeGap");
-    throw new RuntimeException(notSupportedError);  }
+    throw new IloException(notSupportedError);  }
 
   @Override
   public double[] getValues(IloLPMatrix matrix,
@@ -48,19 +48,19 @@ abstract class NotSupportedCplex extends IloCplex {
           throws IloCplex.UnknownObjectException,
           IloException {
     logger.error(notSupportedError + " getValues");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public double[] getValues(IloNumVar[] var1, int var2, int var3, int var4) throws IloCplex.UnknownObjectException, IloException {
     logger.error(notSupportedError + " getValues");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public double getValue(IloNumExpr var1, int var2) throws IloException {
     logger.error(notSupportedError + " getValue");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
@@ -71,49 +71,49 @@ abstract class NotSupportedCplex extends IloCplex {
           throws IloCplex.UnknownObjectException,
           IloException {
     logger.error(notSupportedError + " getValues");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public double getSolnPoolMeanObjValue() throws IloException {
     logger.error(notSupportedError + " getSolnPoolMeanObjValue");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public int getSolnPoolNsolns() throws IloException {
     logger.error(notSupportedError + " getSolnPoolNsolns");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public int getSolnPoolNreplaced() throws IloException {
     logger.error(notSupportedError+" getSolnPoolNreplaced");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public void delSolnPoolSoln(int var1) throws IloException {
     logger.error(notSupportedError+" delSolnPoolSoln");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public void delSolnPoolSolns(int var1, int var2) throws IloException {
     logger.error(notSupportedError+" delSolnPoolSolns");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public double getCutoff() throws IloException {
     logger.error(notSupportedError+" getCutoff");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Aborter use(IloCplex.Aborter var1) throws IloException {
     logger.error(notSupportedError+" use aborter");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
@@ -124,97 +124,62 @@ abstract class NotSupportedCplex extends IloCplex {
   @Override
   public void remove(IloCplex.Aborter var1) throws IloException {
     logger.error(notSupportedError+" remove aborter");
-    throw new RuntimeException(notSupportedError);  }
+    throw new IloException(notSupportedError);  }
 
 
-  @Override
-  public IloCplex.TuneParamHandle tuneParam(boolean var1) throws IloException {
-    logger.error(notSupportedError+" tuneParam");
-    throw new RuntimeException(notSupportedError);
-  }
-
-  @Override
-  public IloCplex.TuneParamHandle tuneParam(IloCplex.ParameterSet var1, boolean var2) throws IloException {
-    logger.error(notSupportedError+" tuneParam");
-    throw new RuntimeException(notSupportedError);
-  }
-
-  @Override
-  public void copyVMConfig(String var1) throws IloException {
-    logger.error(notSupportedError+" copyVMConfig");
-    throw new RuntimeException(notSupportedError);
-  }
-
-  @Override
-  public void readVMConfig(String var1) throws IloException {
-    logger.error(notSupportedError+" readVMConfig");
-    throw new RuntimeException(notSupportedError);
-  }
-
-  @Override
-  public boolean hasVMConfig() throws IloException {
-    logger.error(notSupportedError+" hasVMConfig");
-    throw new RuntimeException(notSupportedError);
-  }
-
-  @Override
-  public void delVMConfig() throws IloException {
-    logger.error(notSupportedError+" delVMConfig");
-    throw new RuntimeException(notSupportedError);
-  }
 
   @Override
   public IloCplex.Goal eqGoal(IloNumExpr var1, double var2) throws IloException {
     logger.error(notSupportedError+" eqGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal eqGoal(IloNumExpr var1, IloNumExpr var2) throws IloException {
     logger.error(notSupportedError+" eqGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal eqGoal(double var1, IloNumExpr var3) throws IloException {
     logger.error(notSupportedError+" eqGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal geGoal(IloNumExpr var1, double var2) throws IloException {
     logger.error(notSupportedError+" geGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal geGoal(IloNumExpr var1, IloNumExpr var2) throws IloException {
     logger.error(notSupportedError+" geGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal geGoal(double var1, IloNumExpr var3) throws IloException {
     logger.error(notSupportedError+" geGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal leGoal(IloNumExpr var1, double var2) throws IloException {
     logger.error(notSupportedError+" leGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal leGoal(IloNumExpr var1, IloNumExpr var2) throws IloException {
     logger.error(notSupportedError+" leGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
   @Override
   public IloCplex.Goal leGoal(double var1, IloNumExpr var3) throws IloException {
     logger.error(notSupportedError+" leGoal");
-    throw new RuntimeException(notSupportedError);
+    throw new IloException(notSupportedError);
   }
 
 
@@ -410,23 +375,6 @@ abstract class NotSupportedCplex extends IloCplex {
     throw new IloException(notSupportedError);
   }
 
-  @Override
-  public IloCplex.RemoteInfoHandler setRemoteInfoHandler(IloCplex.RemoteInfoHandler var1) throws IloException {
-    logger.error(notSupportedError+" dualFarkas");
-    throw new IloException(notSupportedError);
-    }
-
-  @Override
-  public IloCplex.RemoteInfoHandler getRemoteInfoHandler() {
-    logger.error(notSupportedError+" dualFarkas");
-    throw new RuntimeException(notSupportedError);
-  }
-
-  @Override
-  public IloCplex.RemoteInfoHandler removeRemoteInfoHandler() throws IloException {
-    logger.error(notSupportedError+" dualFarkas");
-    throw new IloException(notSupportedError);
-  }
 
   @Override
   public boolean refineMIPStartConflict(int var1, IloConstraint[] var2, double[] var3) throws IloException {
@@ -437,67 +385,6 @@ abstract class NotSupportedCplex extends IloCplex {
   @Override
   public boolean refineMIPStartConflict(int var1, IloConstraint[] var2, double[] var3, int var4, int var5) throws IloException {
     logger.error(notSupportedError + " refineMIPStartConflict");
-    throw new IloException(notSupportedError);
-  }
-
-  @Override
-  public IloCplex.FeasOptHandle feasOpt(IloConstraint[] var1, double[] var2, boolean var3) throws IloException {
-    logger.error(notSupportedError + " asynchronous feasOpt");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.FeasOptHandle feasOpt(IloRange[] var1, double[] var2, double[] var3, boolean var4) throws IloException {
-    logger.error(notSupportedError + " asynchronous feasOpt");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.FeasOptHandle feasOpt(IloNumVar[] var1, double[] var2, double[] var3, boolean var4) throws IloException {
-    logger.error(notSupportedError + " asynchronous feasOpt");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.FeasOptHandle feasOpt(IloRange[] var1, double[] var2, double[] var3, IloNumVar[] var4, double[] var5, double[] var6, boolean var7) throws IloException {
-    logger.error(notSupportedError + " asynchronous feasOpt");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.RefineMIPStartConflictHandle refineMIPStartConflict(int var1, IloConstraint[] var2, double[] var3, boolean var4) throws IloException {
-    logger.error(notSupportedError + " asynchronous refineMIPStartConflict");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.RefineMIPStartConflictHandle refineMIPStartConflict(int var1, IloConstraint[] var2, double[] var3, int var4, int var5, boolean var6) throws IloException {
-    logger.error(notSupportedError + " asynchronous refineMIPStartConflict");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.SolveHandle solve(boolean var1) throws IloException {
-    logger.error(notSupportedError + " asynchronous solve");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.SolveFixedHandle solveFixed(boolean var1) throws IloException {
-    logger.error(notSupportedError + " asynchronous solveFixed");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.SolveFixedHandle solveFixed(int var1, boolean var2) throws IloException {
-    logger.error(notSupportedError + " asynchronous solveFixed");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.RefineConflictHandle refineConflict(IloConstraint[] var1, double[] var2, boolean var3) throws IloException {
-    logger.error(notSupportedError + " asynchronous refineConflict");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.RefineConflictHandle refineConflict(IloConstraint[] var1, double[] var2, int var3, int var4, boolean var5) throws IloException {
-    logger.error(notSupportedError + " asynchronous refineConflict");
-    throw new IloException(notSupportedError);
-  }
-  @Override
-  public IloCplex.PopulateHandle populate(boolean var1) throws IloException {
-    logger.error(notSupportedError + " asynchronous populate");
     throw new IloException(notSupportedError);
   }
 

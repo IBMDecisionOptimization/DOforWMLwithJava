@@ -23,7 +23,7 @@ public class WMLSamples {
         System.out.println("Create Python Model");
         String path = WMLSamples.class.getClassLoader().getResource("diet.zip").getPath().substring(1);
 
-        String model_id = wml.createNewModel("Diet", Connector.Runtime.DO_12_10, Connector.ModelType.DOCPLEX_12_10, path);
+        String model_id = wml.createNewModel("Diet", Connector.Runtime.DO_20_1, Connector.ModelType.DOCPLEX_12_10, path);
         System.out.println("model_id = "+ model_id);
 
         String deployment_id = wml.deployModel("diet-test-wml-2", model_id, Connector.TShirtSize.S,1);

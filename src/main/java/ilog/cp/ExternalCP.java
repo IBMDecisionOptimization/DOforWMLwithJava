@@ -517,7 +517,12 @@ public abstract class ExternalCP extends NotSupportedCP {
 
         return status == Status.Feasible || status == Status.Optimal;
     }
-
+    @Override
+    public void endSearch() throws IloException {
+        end();
+        logger.error(notSupportedError + " endSearch");
+        throw new IloException(notSupportedError);
+    }
 
     @Override
     public boolean refineConflict() throws IloException {
