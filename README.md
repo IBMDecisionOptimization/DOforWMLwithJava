@@ -181,7 +181,6 @@ You can also control the log verbosity of the library using log4j configuration.
 
 The main classes are:
 * [`Connector`](src/main/java/com/ibm/ml/ilog/Connector.java) which provides an interface to handle the WML endpoints.
-* [`COSConnector`](src/main/java/com/ibm/ml/ilog/COSConnector.java) which provides an interface to help handle the IBM Cloud Object Storage that is used in Cloud Pak for Data public.
 * [`Job`](src/main/java/com/ibm/ml/ilog/Job.java) which provides an interface to handle a WML job and its inputs/outputs.
 * [`Credentials`](src/main/java/com/ibm/ml/ilog/Credentials.java) which provides a helper to handle WML and the platform credentials.
 
@@ -210,14 +209,7 @@ To run the WML workflow examples, you will need to provide the variables related
    * WML_HOST: defines the host, for example  "https://us-south.ml.cloud.ibm.com".
    * WML_API_KEY: your api key.
    * WML_SPACE_ID: defines the space that will used to store/handle the various artefacts (model, deployment, ...).
-
-
-**Cloud Object Storage related**
-   * COS_ENDPOINT: defines the COS endpoint, for example "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints".
-   * COS_BUCKET: your bucket name.
-   * COS_ACCESS_KEY: access key.
-   * COS_SECRET_KEY: secret access key.
-
+   
 
 ## Note about the library and WML interactions.
 
