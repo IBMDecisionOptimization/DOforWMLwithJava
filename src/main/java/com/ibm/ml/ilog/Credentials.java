@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /*
-Method to handle the credentials to plya with WML, the platform, COS...
+Method to handle the credentials to plya with WML, the platform...
 You simply use the put method to add a credentials field.
 Fields should come from the Credentials class.
 You should create this class from Credentials.getCredentials and not by yourself.
@@ -54,18 +54,6 @@ public class Credentials {
     public static final String CPD_URL = "service.cpd.url";
     public static final String PLATFORM_HOST = "service.platform.host";
 
-    public static final String COS_ENDPOINT = "service.cos.endpoint";
-    public static final String COS_BUCKET = "service.cos.bucket";
-    public static final String COS_ACCESS_KEY_ID = "service.cos.access_key_id";
-    public static final String COS_SECRET_ACCESS_KEY = "service.cos.secret_access_key";
-
-    public static final String[] COSFields = new String[]{
-            COS_ACCESS_KEY_ID,
-            COS_BUCKET,
-            COS_ENDPOINT,
-            COS_SECRET_ACCESS_KEY
-    };
-
     public static final String[] CPDFields = new String[]{
             CPD_USERNAME,
             CPD_PASSWORD,
@@ -100,14 +88,6 @@ public class Credentials {
         return true;
     }
 
-    private static boolean hasCOSConfig(Config config) {
-        for (String key : COSFields) {
-            if (!config.hasPath(key))
-                return false;
-        }
-        return true;
-    }
-
     /*
     Builds a Credentials object from a config file name
     */
@@ -128,11 +108,7 @@ public class Credentials {
             creds = getPublicCredentials(config);
 
         if (creds == null) throw new IloException("unknown config type.");
-        if (hasCOSConfig(config)) {
-            for (String key : COSFields) {
-                creds.put(key, config.getString(key));
-            }
-        }
+
         return creds;
     }
 

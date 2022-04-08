@@ -4,7 +4,6 @@ import com.ibm.json.java.JSONArray;
 
 import com.ibm.json.java.JSONObject;
 import com.ibm.json.java.JSON;
-import com.ibm.ml.ilog.COSConnector;
 import com.ibm.ml.ilog.Connector;
 import com.ibm.ml.ilog.Credentials;
 import com.ibm.ml.ilog.Job;
@@ -21,7 +20,7 @@ public class WMLSamples {
     private static String createAndDeployDietPythonModel(Connector wml) throws IloException {
 
         System.out.println("Create Python Model");
-        String path = WMLSamples.class.getClassLoader().getResource("diet.zip").getPath().substring(1);
+        String path = WMLSamples.class.getClassLoader().getResource("diet.zip").getPath();//.substring(1);
 
         String model_id = wml.createNewModel("Diet", Connector.Runtime.DO_20_1, Connector.ModelType.DOCPLEX_12_10, path);
         System.out.println("model_id = "+ model_id);
@@ -32,9 +31,8 @@ public class WMLSamples {
         return deployment_id;
     }
 
-    public static void fullDietPythonFlow(boolean useOutputDataReferences, int nJobs)  {
+    public static void fullDietPythonFlow(int nJobs)  {
         Connector wml = null;
-        COSConnector cos = null;
         try {
             System.out.println("Full flow with Diet");
 
@@ -45,23 +43,15 @@ public class WMLSamples {
             input_data.add(createDataFromCSV("diet_food.csv", "diet_food.csv"));
             input_data.add(createDataFromCSV("diet_food_nutrients.csv", "diet_food_nutrients.csv"));
             input_data.add(createDataFromCSV("diet_nutrients.csv", "diet_nutrients.csv"));
-            JSONArray output_data_references = null;
-            if (useOutputDataReferences) {
-                cos = COSConnector.getConnector(CREDENTIALS);
-                cos.initToken();
-                output_data_references = new JSONArray();
-                output_data_references.add(cos.getDataReferences("log.txt"));
-            }
+
             long startTime = System.nanoTime();
             for (int i = 0; i < nJobs; i++) {
-                Job job = wml.createAndRunJob(deployment_id, input_data, null, null, output_data_references);
+                Job job = wml.createAndRunJob(deployment_id, input_data, null, null, null);
                 if (!job.hasFailure()) {
-                    if (useOutputDataReferences) {
-                        getLogFromCOS(cos); // Don't log
-                    } else {
+
                         System.out.println("Log:" + getLogFromJob(job)); // Don't log
                         System.out.println("Solution:" + getSolutionFromJob(job));
-                    }
+
                     long endTime = System.nanoTime();
                     long totalTime = endTime - startTime;
                     System.out.println("Total time: " + (totalTime / 1000000000.));
@@ -78,7 +68,6 @@ public class WMLSamples {
         }
         finally {
             if (wml != null) wml.end();
-            if (cos != null) cos.end();
         }
         wml.end();
     }
@@ -86,7 +75,7 @@ public class WMLSamples {
 
     public static String createAndDeployWarehouseOPLModel(Connector wml) throws IloException {
         System.out.println("Create Warehouse OPL Model");
-        String path = WMLSamples.class.getClassLoader().getResource("warehouse.zip").getPath().substring(1);
+        String path = WMLSamples.class.getClassLoader().getResource("warehouse.zip").getPath();//.substring(1);
 
         String model_id = wml.createNewModel("Warehouse", Connector.Runtime.DO_12_9,  Connector.ModelType.OPL_12_9,path);
         System.out.println("model_id = "+ model_id);
@@ -98,54 +87,6 @@ public class WMLSamples {
     }
 
 
-    public static void fullWarehouseOPLFlow(boolean useOutputDataReferences)  {
-        Connector wml = null;
-        COSConnector cos = null;
-        try {
-            System.out.println("Full Warehouse with OPL");
-
-            wml = Connector.getConnector(CREDENTIALS);
-            wml.initToken();
-            String deployment_id = createAndDeployWarehouseOPLModel(wml);
-
-            cos = COSConnector.getConnector(CREDENTIALS);
-            cos.initToken();
-            String path = WMLSamples.class.getClassLoader().getResource("warehouse.dat").getPath().substring(1);
-
-            if (cos.putFile("warehouse.dat", path) != null) {
-                JSONArray input_data_references = new JSONArray();
-                input_data_references.add(cos.getDataReferences("warehouse.dat"));
-                JSONArray output_data_references = null;
-                if (useOutputDataReferences) {
-                    output_data_references = new JSONArray();
-                    output_data_references.add(cos.getDataReferences("log.txt"));
-                }
-
-                Job job = wml.createAndRunJob(deployment_id, null, input_data_references, null, output_data_references);
-                if (!job.hasFailure()) {
-                    if (useOutputDataReferences) {
-                        System.out.println("Log:" + getLogFromCOS(cos));
-                    } else {
-                        System.out.println("Log:" + getLogFromJob(job));
-                    }
-                }
-                else
-                    System.out.println("Error in WML "+ job.getFailure());
-
-                wml.deleteDeployment(deployment_id);
-            }
-            else
-                throw new IloException("Error uploding in COS.");
-        }
-        catch(IloException e){
-            System.out.println("An error occured "+e.getMessage());
-        }
-        finally {
-            if (wml != null) wml.end();
-            if (cos != null) cos.end();
-        }
-        wml.end();
-    }
 
     public static String getFileContent(String inputFilename) {
         String res = "";
@@ -214,15 +155,6 @@ public class WMLSamples {
         return data;
     }
 
-    public static String getLogFromCOS(COSConnector cos) throws IloException {
-        return getFileFromCOS(cos,"log.txt");
-    }
-    public static String getFileFromCOS(COSConnector cos, String fileName) throws IloException {
-        String content = cos.getFile(fileName);
-        content = content.replaceAll("\\r", "\n");
-        return content;
-    }
-
     public static String getLogFromJob(Job job) {
         return job.getLog();
     }
@@ -234,12 +166,8 @@ public class WMLSamples {
     public static void main(String[] args) {
 
         try {
-            CREDENTIALS = Credentials.getCredentials("wml.cos.conf");
-            fullDietPythonFlow(true, 2);
-            fullDietPythonFlow(false, 2);
-
-            fullWarehouseOPLFlow(false);
-            fullWarehouseOPLFlow(true);
+            CREDENTIALS = Credentials.getCredentials("wml.public.conf");
+            fullDietPythonFlow(2);
         }
         catch(Exception e){
             System.out.println("Something bad happened: "+e.getMessage());
