@@ -28,41 +28,7 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
     private final int wml_nodes;
     private final String resultFormat;
 
-    private final String DECISION_OPTIMIZATION = "decision_optimization";
-    private final String SOLVE_STATE = "solve_state";
-    private final String FAILURE = "failure";
 
-    private final String SOLVE_STATUS = "solve_status";
-    private final String STATE = "state";
-    private final String STATUS = "status";
-    private final String ENTITY = "entity";
-    private final String DETAILS = "details";
-    private final String LATEST_ENGINE_ACTIVITY = "latest_engine_activity";
-    private final String OUTPUT_DATA = "output_data";
-    private final String CONTENT = "content";
-    private final String ID = "id";
-    private final String METADATA = "metadata";
-
-
-    private final String RESOURCES = "resources";
-    private final String NAME = "name";
-    private final String LOGS = "log.txt";
-
-    private final String MLV4 = "/ml/v4";
-    private final String MLV4_DEPLOYMENT_JOBS = MLV4 + "/deployment_jobs";
-    private final String MLV4_MODELS = MLV4 + "/models";
-    private final String MLV4_DEPLOYMENTS = MLV4 + "/deployments";
-    private final String MLV4_INSTANCES = MLV4 + "/instances";
-
-    private final String V2 = "/v2";
-    private final String V2_SOFTWARESPECS = V2 + "/software_specifications";
-    private final String V2_SPACES = V2 + "/spaces";
-    private final String V2_CATALOG = V2 + "/catalogs";
-
-
-    private final String COMPLETED = "completed";
-    private final String FAILED = "failed";
-    private final String[] status = {COMPLETED, FAILED, "canceled", "deleted"};
     private final Set<String> completedStatus = new java.util.HashSet<>(Arrays.asList(status));
 
     private final int statusRefreshRate = config.getInt("wmlconnector.v4.status_rate");
