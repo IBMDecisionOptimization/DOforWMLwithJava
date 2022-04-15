@@ -43,23 +43,64 @@ public class HttpUtils implements TokenHandler {
     protected String sslContextName = config.getString("wmlconnector.v4.ssl_context");
     protected final Credentials wml_credentials;
 
+
+    protected final String DECISION_OPTIMIZATION = "decision_optimization";
+    protected final String SOLVE_STATE = "solve_state";
+    protected final String FAILURE = "failure";
+
+    protected final String SOLVE_STATUS = "solve_status";
+    protected final String STATE = "state";
+    protected final String STATUS = "status";
+    protected final String ENTITY = "entity";
+    protected final String DETAILS = "details";
+    protected final String LATEST_ENGINE_ACTIVITY = "latest_engine_activity";
+    protected final String OUTPUT_DATA = "output_data";
+    protected final String CONTENT = "content";
+    protected final String ID = "id";
+    protected final String ASSET_ID = "asset_id";
+    protected final String METADATA = "metadata";
+
+
+    protected final String RESOURCES = "resources";
+    protected final String NAME = "name";
+    protected final String LOGS = "log.txt";
+
+    protected final String MLV4 = "/ml/v4";
+    protected final String MLV4_DEPLOYMENT_JOBS = MLV4 + "/deployment_jobs";
+    protected final String MLV4_MODELS = MLV4 + "/models";
+    protected final String MLV4_DEPLOYMENTS = MLV4 + "/deployments";
+    protected final String MLV4_INSTANCES = MLV4 + "/instances";
+
+    protected final String V2 = "/v2";
+    protected final String V2_SOFTWARESPECS = V2 + "/software_specifications";
+    protected final String V2_SPACES = V2 + "/spaces";
+    protected final String V2_CATALOG = V2 + "/catalogs";
+
+    protected final String V2_CONNECTIONS = V2 + "/connections";
+
+
+    protected final String COMPLETED = "completed";
+    protected final String FAILED = "failed";
+    protected final String[] status = {COMPLETED, FAILED, "canceled", "deleted"};
+
     protected final String AUTHORIZATION = "Authorization";
-    private final String APIKEY = "apikey";
+    protected final String APIKEY = "apikey";
     protected final String BEARER = "bearer";
     protected final String APPLICATION_JSON = "application/json";
     protected final String CONTENT_TYPE = "Content-Type";
     protected final String ACCEPT = "Accept";
-    private final String ACCESS_TOKEN = "access_token";
-    private final String ACCESSTOKEN = "accessToken";
-    private final String POST = "POST";
-    private final String PUT = "PUT";
-    private final String GET = "GET";
-    private final String DELETE = "DELETE";
-    private final String ML_Instance_ID = "ML-Instance-ID";
-    private final String CACHE_CONTROL = "cache-control";
-    private final String NO_CACHE = "no-cache";
-    private final String VERSION = "version";
+    protected final String ACCESS_TOKEN = "access_token";
+    protected final String ACCESSTOKEN = "accessToken";
+    protected final String POST = "POST";
+    protected final String PUT = "PUT";
+    protected final String GET = "GET";
+    protected final String DELETE = "DELETE";
+    protected final String ML_Instance_ID = "ML-Instance-ID";
+    protected final String CACHE_CONTROL = "cache-control";
+    protected final String NO_CACHE = "no-cache";
+    protected final String VERSION = "version";
     public final String SPACE_ID = "space_id";
+
 
     private CloseableHttpClient httpClient = null;//createHttpsClient();
 
