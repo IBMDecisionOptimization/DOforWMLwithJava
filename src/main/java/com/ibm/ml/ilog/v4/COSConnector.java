@@ -103,11 +103,24 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
         return ret;
     }
 
+    private String getS3Id() throws IloException{
+        Map<String, String> params = getWMLParams();
+        Map<String, String> headers = getPlatformHeaders();
+
+        String res = doGet(
+                wml_credentials.get(Credentials.PLATFORM_HOST),
+                V2_COS,
+                params, headers);
+        JSONObject json = parseJson(res);
+        return (String) ((JSONObject) json.get(METADATA)).get(ASSET_ID);
+    }
+
 
     @Override
     public String getConnection() throws IloException {
         if (_connectionId != null)
             return _connectionId;
+        long t1 = new Date().getTime();
         Map<String, String> params = getWMLParams();
 
         Map<String, String> headers = getPlatformHeaders();
@@ -117,9 +130,10 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
         String cos_secret_access_key = wml_credentials.get(Credentials.COS_SECRET_ACCESS_KEY);
         String cos_origin = wml_credentials.get(Credentials.COS_ORIGIN_COUNTRY);
         String url = wml_credentials.get(Credentials.COS_ENDPOINT);
+        String cos_connId = getS3Id();
         String payload = "{\n" +
                 "\"name\": " +  "\"s3_shared_cxn\""    + ",\n" +
-                "\"datasource_type\": " +  "\"4bf2dedd-3809-4443-96ec-b7bc5726c07b\""    + ",\n" +
+                "\"datasource_type\": \"" +  cos_connId    + "\",\n" +
                 "\"origin_country\": \"" + cos_origin + "\",\n" +
                 "\"properties\": {\n" +
                 "\"access_key\": \"" + cos_access_key_id + "\",\n" +
@@ -128,8 +142,7 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
                 "} \n" +
                 "}\n";
         JSONObject data = parseJson(payload);
-        long t1 = new Date().getTime();
-        String res = doPost(
+    String res = doPost(
                 wml_credentials.get(Credentials.PLATFORM_HOST),
                 V2_CONNECTIONS,
                 params, headers, data.toString());
