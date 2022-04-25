@@ -77,7 +77,7 @@ public class HttpUtils implements TokenHandler {
     protected final String V2_CATALOG = V2 + "/catalogs";
 
     protected final String V2_CONNECTIONS = V2 + "/connections";
-
+    protected final String V2_COS = V2 + "/datasource_types/cloudobjectstorage";
 
     protected final String COMPLETED = "completed";
     protected final String FAILED = "failed";
