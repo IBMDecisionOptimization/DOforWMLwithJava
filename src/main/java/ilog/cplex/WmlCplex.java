@@ -49,14 +49,7 @@ public class WmlCplex extends ExternalCplex {
     @Override
     public void end(){
         logger.info("Cleaning the CPLEX job");
-        if (job != null){
-            logger.info("Cleaning remaining job "+job.getId());
-            try {
-                wmlConnector.deleteJob(job.getId());
-            } catch (IloException e) {
-                logger.warn("Ignoring error "+e.getMessage());
-            }
-        }
+
         wmlConnector.end();
         super.end();
     }

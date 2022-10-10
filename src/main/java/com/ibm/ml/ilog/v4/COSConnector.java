@@ -1,6 +1,5 @@
 package com.ibm.ml.ilog.v4;
 
-import com.ibm.json.java.JSON;
 import com.ibm.json.java.JSONObject;
 import com.ibm.ml.ilog.Credentials;
 import com.ibm.ml.ilog.utils.HttpUtils;
@@ -8,16 +7,19 @@ import ilog.concert.IloException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnector {
 
     private String _connectionId = null;
+    private String _bucketPath = null;
     private static final Logger logger = LogManager.getLogger();
+    @Override
+    public void setBucketPath(String path) throws IloException {
+        if (_bucketPath != null) throw new IloException("Path in bucket already exist");
+        _bucketPath = path;
+    }
 
     @Override
     public void end() {
@@ -27,9 +29,8 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
             Map<String, String> headers = getPlatformHeaders();
 
             long t1 = new Date().getTime();
-            String res = null;
             try {
-                res = doDelete(
+                doDelete(
                         wml_credentials.get(Credentials.PLATFORM_HOST),
                         V2_CONNECTIONS+"/"+_connectionId,
                         params, headers);
@@ -42,6 +43,29 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
             _connectionId = null;
         }
         super.end();
+    }
+
+    public void deleteConnection() {
+        if (_connectionId != null) {
+            Map<String, String> params = getWMLParams();
+
+            Map<String, String> headers = getPlatformHeaders();
+
+            long t1 = new Date().getTime();
+            String res = null;
+            try {
+                res = doDelete(
+                        wml_credentials.get(Credentials.PLATFORM_HOST),
+                        V2_CONNECTIONS + "/" + _connectionId,
+                        params, headers);
+            } catch (IloException e) {
+                logger.error(e.getMessage());
+            }
+            long t2 = new Date().getTime();
+            logger.info("Connection Id = " + _connectionId);
+            logger.info("Deleting the connection took " + (t2 - t1) / 1000 + " seconds.");
+            _connectionId = null;
+        }
     }
 
     private void checkCredentials() throws IloException {
@@ -66,16 +90,20 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
 
         String cos_bucket = wml_credentials.get(Credentials.COS_BUCKET);
 
+        String filename = "\"file_name\": \"";
+        if (_bucketPath != null)
+            filename = filename + _bucketPath + "/";
+        filename = filename + id  + "\"\n";
         String data = "{\n" +
                 //"\"id\": \"" + id + "\",\n" +
                 "\"type\": \"connection_asset\",\n" +
                 "\"id\": \"" + id  + "\",\n" +
                 "\"connection\": {\n" +
-                "\"id\": \"" + getConnection()  + "\"\n" +
+                "\"id\": \"" + getConnectionId()  + "\"\n" +
                 "},\n" +
                 "\"location\": {\n" +
                 "\"bucket\": \"" + cos_bucket  + "\",\n" +
-                "\"file_name\": \"" + id  + "\"\n" +
+                filename +
                 "},\n" +
                 "}\n";
         return parseJson(data);
@@ -83,8 +111,6 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
 
     @Override
     public String putFile(String fileName, String filePath) throws IloException {
-        String cos_bucket = wml_credentials.get(Credentials.COS_BUCKET);
-
         byte[] bytes = getFileContent(filePath);
 
         Map<String, String> params = getPlatformParams();
@@ -96,11 +122,20 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
         long t1 = new Date().getTime();
         String ret = doPut(
                 wml_credentials.get(Credentials.COS_ENDPOINT),
-                "/" + cos_bucket + "/" + fileName,
+                getTargetUrl(fileName),
                 params, headers, bytes);
         long t2 = new Date().getTime();
         logger.info("Uploading in COS took " + (t2 - t1) / 1000 + " seconds.");
         return ret;
+    }
+
+    private String getTargetUrl(String fileName){
+        String cos_bucket = wml_credentials.get(Credentials.COS_BUCKET);
+        String targetUrl = "/" + cos_bucket + "/";
+        if (_bucketPath != null)
+            targetUrl = targetUrl + _bucketPath + "/";
+        targetUrl = targetUrl + fileName;
+        return targetUrl;
     }
 
     private String getS3Id() throws IloException{
@@ -117,7 +152,7 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
 
 
     @Override
-    public String getConnection() throws IloException {
+    public String getConnectionId() throws IloException {
         if (_connectionId != null)
             return _connectionId;
         long t1 = new Date().getTime();
@@ -158,14 +193,12 @@ public class COSConnector extends HttpUtils implements com.ibm.ml.ilog.COSConnec
 
     @Override
     public String getFile(String fileName) throws IloException {
-        String cos_bucket = wml_credentials.get(Credentials.COS_BUCKET);
-
         Map<String, String> params = getPlatformParams();
         Map<String, String> headers = getPlatformHeaders();
 
         String res = doGet(
                 wml_credentials.get(Credentials.COS_ENDPOINT),
-                "/" + cos_bucket + "/" + fileName,
+                getTargetUrl(fileName),
                 params,
                 headers);
 
