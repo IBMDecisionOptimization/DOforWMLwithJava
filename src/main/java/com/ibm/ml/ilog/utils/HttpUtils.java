@@ -319,7 +319,6 @@ public class HttpUtils implements TokenHandler {
     }
 
     public void close() {
-        System.out.println("Closing");
         if (timer != null) {
             timer.cancel();
             timer.purge();
@@ -419,8 +418,6 @@ public class HttpUtils implements TokenHandler {
 
     public String doGet(String host, String targetUrl, Map<String, String> params, Map<String, String> headers) throws IloException {
             String ret =  doCall(host, targetUrl, params, headers, null, GET);
-            if (targetUrl.contains("jobs"))
-                System.out.println(ret);
             return ret;
     }
 

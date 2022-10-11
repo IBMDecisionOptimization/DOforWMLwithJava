@@ -458,8 +458,6 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
             solve_parameters.put("oaas.logTailEnabled", "false");
         if (custom != null) {
             for (Map.Entry<String, String> set : ((HashMap<String, String>)custom).entrySet()) {
-                // Printing all elements of a Map
-                System.out.println(set.getKey() + " = " + set.getValue());
                 solve_parameters.put(set.getKey(), set.getValue());
             }
         }
@@ -665,8 +663,6 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
                 JSONObject jcustom = new JSONObject();
                 JSONObject decision_optimization = new JSONObject();
                 for (Map.Entry<String, String> set : ((HashMap<String, String>)custom).entrySet()) {
-                    // Printing all elements of a Map
-                    System.out.println(set.getKey() + " = " + set.getValue());
                     decision_optimization.put(set.getKey(), set.getValue());
                 }
                 jcustom.put("decision_optimization", decision_optimization);
