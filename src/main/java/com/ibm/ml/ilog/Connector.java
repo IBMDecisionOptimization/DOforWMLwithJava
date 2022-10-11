@@ -6,6 +6,7 @@ import com.ibm.json.java.JSONArray;
 import com.ibm.json.java.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 
 /* A WML interface */
@@ -145,7 +146,7 @@ public interface Connector extends TokenHandler {
 
     String getOrMakeDeployment(String name, boolean isCplex) throws IloException;
 
-    String createNewModel(String modelName, Runtime runtime, ModelType type, String modelAssetFilePath) throws IloException;
+    String createNewModel(String modelName, Runtime runtime, ModelType type, String modelAssetFilePath, HashMap<String,String> custom) throws IloException;
 
     String deployModel(String deployName, String model_id, TShirtSize size, int nodes) throws IloException;
 
@@ -159,14 +160,16 @@ public interface Connector extends TokenHandler {
                   JSONArray input_data,
                   JSONArray input_data_references,
                   JSONArray output_data,
-                  JSONArray output_data_references) throws IloException;
+                  JSONArray output_data_references, HashMap<String,String> custom) throws IloException;
 
     Job createAndRunJob(String deployment_id,
                         JSONArray input_data,
                         JSONArray input_data_references,
                         JSONArray output_data,
-                        JSONArray output_data_references) throws IloException;
-
+                        JSONArray output_data_references, HashMap<String,String> custom) throws IloException;
+    Job createAndRunJob(String deployment_id,
+                        JSONArray input_data_references,
+                        JSONArray output_data_references, HashMap<String,String> custom) throws IloException;
     JSONObject getDeployments() throws IloException;
 
     JSONObject getModels() throws IloException;

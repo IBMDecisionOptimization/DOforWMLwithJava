@@ -3,8 +3,6 @@ package com.ibm.ml.ilog;
 import com.ibm.json.java.JSONObject;
 import ilog.concert.IloException;
 
-import java.io.IOException;
-
 /*
 A Simple connector to IBM Cloud Object Storage
  */
@@ -26,9 +24,13 @@ public interface COSConnector extends TokenHandler {
     /*
     Method to create a connection asset from COS credentials.
      */
-    String getConnection() throws IloException;
+    String getConnectionId() throws IloException;
+
+    void deleteConnection();
     /*
     Download the content of a COS file as a string.
      */
     String getFile(String fileName) throws IloException;
+
+    void setBucketPath(String path) throws IloException;
 }

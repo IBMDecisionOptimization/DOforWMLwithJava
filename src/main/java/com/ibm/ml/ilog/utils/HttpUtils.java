@@ -366,6 +366,8 @@ public class HttpUtils implements TokenHandler {
                     logger.warn("Calling " + url + " with empty token!");
             }
         }
+        if (body != null && method.equals(PUT) == false)
+            curl.append(new String(body));
         logger.info("Curl info: " + curl);
 
         try {
@@ -415,7 +417,8 @@ public class HttpUtils implements TokenHandler {
     }
 
     public String doGet(String host, String targetUrl, Map<String, String> params, Map<String, String> headers) throws IloException {
-            return doCall(host, targetUrl, params, headers, null, GET);
+            String ret =  doCall(host, targetUrl, params, headers, null, GET);
+            return ret;
     }
 
     public String doDelete(String host, String targetUrl, Map<String, String> params, Map<String, String> headers) throws IloException {

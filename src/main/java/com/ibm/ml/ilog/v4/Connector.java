@@ -422,13 +422,23 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
         }
         return ret;
     }
+    @Override
+    public Job createAndRunJob(String deployment_id,
+                               JSONArray input_data_references,
+                               JSONArray output_data_references, HashMap<String, String> custom) throws IloException {
+        return createAndRunJob(deployment_id,
+                null,
+                input_data_references,
+                null,
+                output_data_references, custom);
+    }
 
     @Override
     public Job createJob(String deployment_id,
                          JSONArray input_data,
                          JSONArray input_data_references,
                          JSONArray output_data,
-                         JSONArray output_data_references) throws IloException {
+                         JSONArray output_data_references, HashMap<String,String> custom) throws IloException {
         logger.info("Create job");
         JSONObject payload = new JSONObject();
 
@@ -446,6 +456,11 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
             solve_parameters.put("oaas.logTailEnabled", "true");
         else
             solve_parameters.put("oaas.logTailEnabled", "false");
+        if (custom != null) {
+            for (Map.Entry<String, String> set : ((HashMap<String, String>)custom).entrySet()) {
+                solve_parameters.put(set.getKey(), set.getValue());
+            }
+        }
         solve_parameters.put("oaas.includeInputData", "false");
         solve_parameters.put("oaas.resultsFormat", resultFormat);
         solve_parameters.put("oaas.engineLogLevel", engineLogLevel);
@@ -615,8 +630,8 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
                                JSONArray input_data,
                                JSONArray input_data_references,
                                JSONArray output_data,
-                               JSONArray output_data_references) throws IloException {
-        Job job = createJob(deployment_id, input_data, input_data_references, output_data, output_data_references);
+                               JSONArray output_data_references, HashMap<String,String> custom) throws IloException {
+        Job job = createJob(deployment_id, input_data, input_data_references, output_data, output_data_references, custom);
 
         String state = waitCompletion(job);
 
@@ -631,7 +646,7 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
 
 
     @Override
-    public String createNewModel(String modelName, Runtime runtime, ModelType type, String modelAssetFilePath) throws IloException {
+    public String createNewModel(String modelName, Runtime runtime, ModelType type, String modelAssetFilePath, HashMap<String,String> custom) throws IloException {
         String modelId = null;
         {
             Map<String, String> headers = getWMLHeaders();
@@ -644,6 +659,15 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
             JSONObject soft = new JSONObject();
             soft.put(NAME, runtime.getShortName());
             payload.put("software_spec", soft);
+            if (custom != null){
+                JSONObject jcustom = new JSONObject();
+                JSONObject decision_optimization = new JSONObject();
+                for (Map.Entry<String, String> set : ((HashMap<String, String>)custom).entrySet()) {
+                    decision_optimization.put(set.getKey(), set.getValue());
+                }
+                jcustom.put("decision_optimization", decision_optimization);
+                payload.put("custom", jcustom);
+            }
             payload.put(SPACE_ID, wml_credentials.get(Credentials.WML_SPACE_ID));
 
             String res = doPost(
@@ -842,7 +866,7 @@ public class Connector extends HttpUtils implements com.ibm.ml.ilog.Connector {
             else
                 type = com.ibm.ml.ilog.Connector.getCPOModelType(wml_runtime);
 
-            String model_id = this.createNewModel(name, wml_runtime, type, null);
+            String model_id = this.createNewModel(name, wml_runtime, type, null, null);
             logger.info("model_id = " + model_id);
 
             deployment_id = this.deployModel(name, model_id, wml_size, wml_nodes);
